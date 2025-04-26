@@ -1,0 +1,32 @@
+expose:
+  type: ingress
+  ingress:
+    hosts:
+      core: harbor.welltrack.local
+    className: nginx
+persistence:
+  enabled: false  # 初始简化，不启用持久化，后续配置Ceph
+trivy:
+  enabled: false  # 禁用扫描以节省资源
+notary:
+  enabled: false  # 禁用Notary
+portal:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+core:
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+jobservice:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+registry:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi

@@ -1,0 +1,13 @@
+controller:
+  service:
+    type: NodePort
+    nodePorts:
+      http: 30080
+      https: 30443
+  kind: DaemonSet
+  nodeSelector:
+    "kubernetes.io/os": linux
+  admissionWebhooks:
+    patch:
+      nodeSelector:
+        "kubernetes.io/os": linux
