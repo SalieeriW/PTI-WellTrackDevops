@@ -1,0 +1,17 @@
+auth:
+  username: welltrackuser
+  password: "replace-with-strong-password"  # 需替换为强密码，后续用Vault管理
+  database: welltrackdb
+primary:
+  persistence:
+    enabled: true
+    storageClass: "standard"  # 使用Kind默认SC，后续切换到Ceph
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+readReplicas:
+  enabled: false
+service:
+  type: ClusterIP

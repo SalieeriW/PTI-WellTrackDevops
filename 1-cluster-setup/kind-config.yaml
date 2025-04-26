@@ -21,6 +21,11 @@ nodes:
   - containerPort: 443
     hostPort: 443 # 或其他可用端口，如 8443
     protocol: TCP
+  extraMounts:
+  - hostPath: /dev
+    containerPath: /dev
+  - hostPath: /run/udev
+    containerPath: /run/udev
 # 如果需要更多资源分布，特别是为 Ceph/Vault，可以添加 worker 节点
 # - role: worker
 # - role: worker

@@ -1,0 +1,44 @@
+alertmanager:
+  enabled: false  # 初始可以禁用Alertmanager以节省资源
+grafana:
+  enabled: true
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana.welltrack.local
+  persistence:
+    enabled: true
+    storageClassName: "standard"
+    size: 2Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+kubeControllerManager:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubeScheduler:
+  enabled: false
+prometheus:
+  prometheusSpec:
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: "standard"
+          resources:
+            requests:
+              storage: 10Gi
+    resources:
+      requests:
+        cpu: 300m
+        memory: 750Mi
+      limits:
+        cpu: 1000m
+        memory: 1500Mi
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
