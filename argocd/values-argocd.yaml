@@ -1,0 +1,27 @@
+server:
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - argocd.welltrack.local
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+applicationSet:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+repoServer:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+configs:
+  repositories:
+    welltrack-app-repo:
+      url: <your-welltrack-app-git-repo-url>
+      type: git
