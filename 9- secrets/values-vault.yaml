@@ -1,0 +1,18 @@
+server:
+  dev:
+    enabled: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+ui:
+  enabled: true
+  serviceType: ClusterIP
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - host: vault.welltrack.local
+        paths: 
+          - path: "/"
+            pathType: Prefix
