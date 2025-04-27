@@ -1,18 +1,29 @@
 server:
+  # Configure Vault server specific settings
   dev:
+    # Enable Vault dev mode (single node, in-memory storage, auto-unseal) - NOT FOR PRODUCTION
     enabled: true
+  # Define resource requests for the Vault server pod
   resources:
     requests:
       cpu: 100m
       memory: 128Mi
+
+# Configure the Vault UI
 ui:
+  # Enable the Vault web UI
   enabled: true
+  # Expose the UI service via ClusterIP (internal access only by default)
   serviceType: ClusterIP
+  # Configure Ingress for accessing the Vault UI
   ingress:
+    # Enable Ingress for the UI
     enabled: true
+    # Specify the IngressClass (e.g., nginx)
     ingressClassName: nginx
+    # Define hostname and path for accessing the UI via Ingress
     hosts:
       - host: vault.welltrack.local
-        paths: 
+        paths:
           - path: "/"
             pathType: Prefix

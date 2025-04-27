@@ -1,13 +1,22 @@
 controller:
+  # Configure the Nginx Ingress controller service
   service:
+    # Use NodePort to expose the service on specific host ports
     type: NodePort
     nodePorts:
+      # Map HTTP traffic to host port 30080
       http: 30080
+      # Map HTTPS traffic to host port 30443
       https: 30443
+  # Run the controller as a DaemonSet to ensure one pod per node (matching the selector)
   kind: DaemonSet
+  # Schedule controller pods only on nodes with this label
   nodeSelector:
     "kubernetes.io/os": linux
+  # Configure admission webhooks
   admissionWebhooks:
+    # Configure the patch job for webhooks
     patch:
+      # Schedule the patch job only on nodes with this label
       nodeSelector:
         "kubernetes.io/os": linux

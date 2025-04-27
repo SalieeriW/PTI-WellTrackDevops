@@ -1,0 +1,35 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+networking:
+  # Optional: Specify API server address to avoid conflicts
+  apiServerAddress: "127.0.0.1"
+  # Optional: Specify API server port to avoid conflicts
+  apiServerPort: 6443
+nodes:
+- role: control-plane
+  # Patch Kubeadm config for the control-plane node
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        # Set node label for Ingress controller affinity
+        node-labels: "ingress-ready=true"
+  # Map host ports 80/443 to the Kind control-plane node's ports
+  # This allows accessing the Ingress Controller via localhost:[hostPort]
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 80 # Map container port 80 to host port 80 (or another available port like 8080)
+    protocol: TCP
+  - containerPort: 443
+    hostPort: 443 # Map container port 443 to host port 443 (or another available port like 8443)
+    protocol: TCP
+  # Mount host directories into the node
+  extraMounts:
+  - hostPath: /dev
+    containerPath: /dev
+  - hostPath: /run/udev
+    containerPath: /run/udev
+# Optional: Add worker nodes if more resource distribution is needed (e.g., for Ceph/Vault)
+# - role: worker
+# - role: worker

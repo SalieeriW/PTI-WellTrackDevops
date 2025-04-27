@@ -7,4 +7,4 @@ helm install argocd argo/argo-cd \
 
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
 
-8m8BQucG-UwsbK1C
+beXnSqo-jqRE2m19

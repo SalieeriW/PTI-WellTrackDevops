@@ -1,28 +1,42 @@
 apiVersion: ceph.rook.io/v1
 kind: CephBlockPool
 metadata:
-  name: replicapool
-  namespace: rook-ceph
+  name: replicapool # Name of the Ceph block pool
+  namespace: rook-ceph # Namespace where the CephCluster resides
 spec:
+  # Configure replication for this pool
   replicated:
+    # Number of data replicas (use 3 for production)
     size: 1
+    # Allow creating the pool even if replica count < min_size (for testing/dev)
     requireSafeReplicaSize: false
 ---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: rook-ceph-block
+  name: rook-ceph-block # Name of the Kubernetes StorageClass
+# Specify the CSI provisioner for Rook Ceph RBD (RADOS Block Device)
 provisioner: rook-ceph.rbd.csi.ceph.com
+# Parameters passed to the CSI provisioner
 parameters:
+  # The Ceph cluster ID (must match CephCluster metadata.namespace)
   clusterID: rook-ceph
+  # The Ceph pool to use for provisioning volumes
   pool: replicapool
+  # Ceph RBD image format (2 supports layering)
   imageFormat: "2"
+  # Secret containing credentials for the CSI provisioner
   csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
   csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  # Secret for volume expansion operations
   csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
   csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  # Secret used by nodes to attach/detach volumes
   csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
   csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+  # Default filesystem type for provisioned volumes
   csi.storage.k8s.io/fstype: ext4
-reclaimPolicy: Delete
+# Action to take when a PersistentVolume created by this StorageClass is deleted
+reclaimPolicy: Delete # Delete the underlying Ceph RBD image
+# Allow volumes created by this StorageClass to be expanded
 allowVolumeExpansion: true

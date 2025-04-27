@@ -1,27 +1,44 @@
 server:
+  # Configuration for the Argo CD API server
   service:
+    # Use ClusterIP as the service type (internal access only by default)
     type: ClusterIP
   ingress:
+    # Enable Ingress for the Argo CD server UI/API
     enabled: true
+    # Specify the IngressClass to use (e.g., nginx)
     ingressClassName: nginx
+    # Define the hostname for accessing Argo CD via Ingress
     hosts:
       - argocd.welltrack.local
+  # Define resource requests for the Argo CD server pods
   resources:
     requests:
       cpu: 100m
       memory: 128Mi
+
+# Configuration for the ApplicationSet controller
 applicationSet:
+  # Define resource requests for the ApplicationSet controller pods
   resources:
     requests:
       cpu: 100m
       memory: 128Mi
+
+# Configuration for the Argo CD Repo Server
 repoServer:
+  # Define resource requests for the Repo Server pods
   resources:
     requests:
       cpu: 100m
       memory: 128Mi
+
+# Define global configurations, like Git repositories
 configs:
   repositories:
+    # Add a Git repository to be managed by Argo CD
     welltrack-app-repo:
-      url: <your-welltrack-app-git-repo-url>
+      # URL of the Git repository containing application manifests
+      url: <your-welltrack-app-git-repo-url> # TODO: Replace with your actual Git repository URL
+      # Type of the repository
       type: git

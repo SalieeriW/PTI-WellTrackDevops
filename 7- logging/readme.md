@@ -5,7 +5,7 @@ helm install loki grafana/loki \
   --namespace logging --create-namespace \
   --version 6.29.0 \
   -f values-loki.yaml \
-  --set loki.useTestSchema=true
+
 
 Loki has been configured with a gateway (nginx) to support reads and writes from a single component.
 
