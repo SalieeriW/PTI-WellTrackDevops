@@ -1,10 +1,7 @@
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update
 
-helm install loki grafana/loki \
-  --namespace logging --create-namespace \
-  --version 6.29.0 \
-  -f values-loki.yaml 
+helm install loki grafana/loki --namespace logging --create-namespace --version 6.29.0 -f values-loki.yaml 
 
 
 Loki has been configured with a gateway (nginx) to support reads and writes from a single component.
@@ -31,7 +28,5 @@ curl "http://127.0.0.1:3100/loki/api/v1/query_range" --data-urlencode 'query={jo
 ```
 
 promtail :
-helm install promtail grafana/promtail \
-  --namespace logging \
-  -f values-promtail.yaml
+helm install promtail grafana/promtail --namespace logging -f values-promtail.yaml
 
