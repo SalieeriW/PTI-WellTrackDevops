@@ -33,7 +33,7 @@ welltrack-local-infra/
 
 ## Local Host Configuration
 
-For accessing services exposed via Ingress (like Harbor, Argo CD, Grafana, Vault) using their hostnames, you need to add the following entry to your local machine's hosts file (e.g., `/etc/hosts` on Linux/macOS or `C:\Windows\System32\drivers\etc\hosts` on Windows):
+For accessing services exposed via Ingress (like Harbor, Argo CD, Grafana, Vault) using their hostnames, you need to add the following entry to your local machine's hosts file (e.g., `/etc/hosts` on Linux and `C:\Windows\System32\drivers\etc\hosts` on Windows):
 
 ```bash
 # Example entry for /etc/hosts
