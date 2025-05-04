@@ -1,9 +1,7 @@
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 
-helm install postgresql bitnami/postgresql \
-  --namespace database --create-namespace \
-  -f values-postgres.yaml
+helm install postgresql bitnami/postgresql --namespace database --create-namespace -f values-postgres.yaml
 
   PostgreSQL can be accessed via port 5432 on the following DNS names from within your cluster:
 
