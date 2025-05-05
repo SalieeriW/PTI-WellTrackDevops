@@ -28,4 +28,5 @@ ui:
 # 配置 Vault 的存储后端
 storage:
   # 配置 Vault 的存储后端类型
-  type: file 
+  type: file
+  

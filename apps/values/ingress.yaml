@@ -53,4 +53,4 @@ defaultBackend:
   resources:
     requests:
       cpu: 50m
-      memory: 64Mi 
+      memory: 64Mi

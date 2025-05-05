@@ -27,4 +27,4 @@ readReplicas:
 # Configuration for the PostgreSQL service
 service:
   # Use ClusterIP for internal cluster access only
-  type: ClusterIP 
+  type: ClusterIP
