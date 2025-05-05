@@ -15,8 +15,8 @@ spec:
     repoURL: {{ .Values.spec.vault.repoURL }}
     targetRevision: {{ .Values.spec.vault.targetRevision }}
     helm:
-      valueFiles:
-        - {{ .Values.spec.vault.values }}
+      values: |
+{{ .Files.Get "values/vault.yaml" | indent 8 }}
   destination:
     server: {{ .Values.spec.destination.server }}
     namespace: {{ .Values.spec.vault.namespace }}

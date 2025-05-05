@@ -16,8 +16,8 @@ spec:
     repoURL: {{ .Values.spec.logging.loki.repoURL }}
     targetRevision: {{ .Values.spec.logging.loki.targetRevision }}
     helm:
-      valueFiles:
-        - {{ .Values.spec.logging.loki.values }}
+      values: |
+{{ .Files.Get "values/logging-loki.yaml" | indent 8 }}
   destination:
     server: {{ .Values.spec.destination.server }}
     namespace: {{ .Values.spec.logging.namespace }}
@@ -45,8 +45,8 @@ spec:
     repoURL: {{ .Values.spec.logging.promtail.repoURL }}
     targetRevision: {{ .Values.spec.logging.promtail.targetRevision }}
     helm:
-      valueFiles:
-        - {{ .Values.spec.logging.promtail.values }}
+      values: |
+{{ .Files.Get "values/logging-promtail.yaml" | indent 8 }}
   destination:
     server: {{ .Values.spec.destination.server }}
     namespace: {{ .Values.spec.logging.namespace }}

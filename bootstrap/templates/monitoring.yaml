@@ -15,8 +15,8 @@ spec:
     repoURL: {{ .Values.spec.monitoring.repoURL }}
     targetRevision: {{ .Values.spec.monitoring.targetRevision }}
     helm:
-      valueFiles:
-        - {{ .Values.spec.monitoring.values }}
+      values: |
+{{ .Files.Get "values/monitoring.yaml" | indent 8 }}
   destination:
     server: {{ .Values.spec.destination.server }}
     namespace: {{ .Values.spec.monitoring.namespace }}
