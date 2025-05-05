@@ -1,32 +1,38 @@
 server:
-  # 配置 Vault 服务器特定设置
+  # Configuracion especifica del servidor Vault
   dev:
-    # 启用 Vault 开发模式（单节点，内存存储，自动解封）- 不适用于生产环境
+    # Habilitar el modo de desarrollo de Vault (nodo unico, almacenamiento en memoria, auto-desellado)
+    # ¡NO APTO PARA PRODUCCIÓN!
     enabled: true
-  # 为 Vault 服务器 pod 定义资源请求
+  # Definir solicitudes de recursos para los pods del servidor Vault
   resources:
     requests:
       cpu: 100m
       memory: 128Mi
-  # 配置 Ingress 以允许从 Kubernetes 外部访问 Vault
+  # Configurar Ingress para permitir el acceso a Vault desde fuera del cluster
   ingress:
     enabled: true
+    # Clase de Ingress a utilizar (p. ej., nginx)
     ingressClassName: nginx
+    # Tipo de coincidencia para la ruta (Prefix, Exact)
     pathType: Prefix
+    # Nombres de host para acceder a Vault
     hosts:
       - host: vault.welltrack.local
-        paths: 
+        # Rutas de acceso para el Ingress
+        paths:
           - /
 
-# 配置 Vault UI
+# Configurar la interfaz de usuario web de Vault
 ui:
-  # 启用 Vault web UI
+  # Habilitar la interfaz de usuario web
   enabled: true
-  # 通过 ClusterIP 暴露 UI 服务（默认仅内部访问）
+  # Exponer el servicio de la UI a traves de ClusterIP (acceso interno por defecto)
   serviceType: ClusterIP
 
-# 配置 Vault 的存储后端
+# Configurar el backend de almacenamiento de Vault
 storage:
-  # 配置 Vault 的存储后端类型
+  # Tipo de backend de almacenamiento a utilizar
+  # 'file' es simple para desarrollo pero NO para producción (no persistente ni HA)
   type: file
   

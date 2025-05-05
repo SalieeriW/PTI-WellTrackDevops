@@ -1,55 +1,74 @@
 controller:
-  # 配置控制器服务
+  # Configuración del servicio del controlador Nginx Ingress
   service:
+    # Tipo de servicio (LoadBalancer, NodePort, ClusterIP)
     type: NodePort
+    # Puertos específicos del nodo si type=NodePort
     nodePorts:
       http: 30080
       https: 30443
   
-  # 使用DaemonSet确保每个节点上有一个Ingress控制器
+  # Tipo de controlador a desplegar (Deployment o DaemonSet)
+  # DaemonSet asegura un pod por nodo (útil con hostPort)
   kind: DaemonSet
   
-  # 配置控制器在哪些节点上运行
+  # Selector de nodos para restringir en qué nodos se ejecuta el controlador
   nodeSelector:
     "kubernetes.io/os": linux
-    "ingress-ready": "true"
+    "ingress-ready": "true" # Etiqueta personalizada para marcar nodos listos para ingress
   
-  # 启用主机端口，直接将控制器容器端口绑定到节点端口
+  # Exponer los puertos del controlador directamente en el host
   hostPort:
     enabled: true
     ports:
       http: 80
       https: 443
   
+  # Argumentos extra para pasar al contenedor del controlador
   extraArgs:
+    # Deshabilitar SSL Passthrough (si es true, Nginx no termina TLS)
     enable-ssl-passthrough: "false"
   
-  # 配置控制器以接受非安全的后端
+  # Configuración general del controlador Nginx
   config:
+    # Confiar en las cabeceras X-Forwarded-* (importante si hay proxies delante)
     use-forwarded-headers: "true"
+    # Tamaño máximo del cuerpo de la petición proxy (0 = ilimitado)
     proxy-body-size: "0"
+    # Deshabilitar redirección global a HTTPS
     ssl-redirect: "false"
+    # Permitir que el backend envíe su propia cabecera 'Server'
     allow-backend-server-header: "true"
+    # Usar HTTP/2 para las conexiones backend
     use-http2: "true"
   
+  # Servicio backend por defecto (vacío para usar el del chart)
   defaultBackendService: ""
   
+  # Recursos para los pods del controlador principal
   resources:
     requests:
       cpu: 100m
       memory: 128Mi
   
+  # Configuración de los webhooks de admisión (para validación/mutación de Ingress)
   admissionWebhooks:
+    # Configuración del parcheador de webhooks
     patch:
+      # Selector de nodos para los pods del parcheador
       nodeSelector:
         "kubernetes.io/os": linux
+      # Recursos para los pods del parcheador
       resources:
         requests:
           cpu: 50m
           memory: 64Mi
 
+# Configuración del backend por defecto (página 404/503 personalizada)
 defaultBackend:
+  # Habilitar el despliegue del backend por defecto
   enabled: true
+  # Recursos para el pod del backend por defecto
   resources:
     requests:
       cpu: 50m

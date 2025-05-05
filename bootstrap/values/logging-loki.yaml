@@ -1,22 +1,22 @@
-# Deploy Loki in SingleBinary mode for simpler local setup
+# Desplegar Loki en modo SingleBinary para una configuración local más simple
 deploymentMode: SingleBinary
 
 singleBinary:
-  # Run a single replica of Loki
+  # Ejecutar una única réplica de Loki
   replicas: 1
-  # Define resource requests for the Loki pod
+  # Definir solicitudes de recursos para el pod de Loki
   resources:
     requests:
       cpu: 100m
       memory: 256Mi
-  # Configure persistence for Loki data
+  # Configurar persistencia para los datos de Loki
   persistence:
     enabled: true
     size: 10Gi
-    # Specify the StorageClass for the PVC
+    # Especificar la StorageClass para el PVC
     storageClass: "standard"
 
-# Disable separate backend, read, and write components in SingleBinary mode
+# Deshabilitar componentes separados de backend, read y write en modo SingleBinary
 backend:
   replicas: 0
 read:
@@ -25,28 +25,28 @@ write:
   replicas: 0
 
 loki:
-  # Disable authentication for easier local access
+  # Deshabilitar autenticación para un acceso local más fácil
   auth_enabled: false
-  # Common configuration for all Loki components (relevant in SingleBinary mode too)
+  # Configuración común para todos los componentes de Loki (relevante también en SingleBinary)
   commonConfig:
-    # Set replication factor to 1 for single instance setup
+    # Establecer factor de replicación a 1 para configuración de instancia única
     replication_factor: 1
-  # Configure storage backend
+  # Configurar el backend de almacenamiento
   storage:
-    # Use filesystem storage for simplicity in local dev
+    # Usar almacenamiento de sistema de archivos (filesystem) para simplicidad en desarrollo local
     type: filesystem
-  # Define schema configuration for Loki data storage
+  # Definir la configuración del esquema para el almacenamiento de datos de Loki
   schemaConfig:
     configs:
-      # Define a schema starting from 2023-01-01
+      # Definir un esquema a partir de 2023-01-01
       - from: 2023-01-01
-        # Use the Time Series Database (TSDB) index store (recommended)
+        # Usar el almacén de índices Time Series Database (TSDB) (recomendado)
         store: tsdb
-        # Specify the object store type (matches storage.type)
+        # Especificar el tipo de almacén de objetos (coincide con storage.type)
         object_store: filesystem
-        # Use schema v12 for Loki 2.8.x
+        # Usar esquema v12 para Loki 2.8.x
         schema: v12
-        # Configure the index parameters
+        # Configurar los parámetros del índice
         index:
           prefix: index_
           period: 24h

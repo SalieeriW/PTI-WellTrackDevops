@@ -1,52 +1,60 @@
-# Rook-Ceph集群配置
+# Configuración del Operador Rook-Ceph
 operator:
-  # 操作员配置
+  # Configuración de recursos para los pods del operador
   resources:
     requests:
       cpu: 100m
       memory: 128Mi
   
-  # 允许Ceph在非专用节点上运行（适用于开发环境）
+  # Permitir que Ceph se ejecute en nodos no dedicados (útil para desarrollo/pruebas)
   tolerations:
     - effect: NoSchedule
-      key: node-role.kubernetes.io/control-plane
+      key: node-role.kubernetes.io/control-plane # Tolerar taint de control-plane
       operator: Exists
 
-# Ceph集群配置
+# Configuración del Cluster Ceph
 cephClusterSpec:
-  # 基于目录的数据目录，适用于测试/开发环境
+  # Ruta en el host para el directorio de datos (basado en directorio, para pruebas/desarrollo)
   dataDirHostPath: /var/lib/rook
   
-  # 禁用设备发现，使用目录存储
+  # Configuración de almacenamiento Ceph
   storage:
+    # Usar todos los nodos disponibles
     useAllNodes: true
+    # No usar todos los dispositivos automáticamente (usaremos directorios)
     useAllDevices: false
+    # Usar directorios específicos en los nodos para el almacenamiento OSD
     directories:
-      - path: /var/lib/rook/store
+      - path: /var/lib/rook/store # Ruta dentro del host para almacenar datos OSD
 
-# Ceph工具箱配置
+# Configuración de la Toolbox de Ceph (herramientas de diagnóstico)
 toolbox:
+  # Habilitar el despliegue de la toolbox
   enabled: true
+  # Recursos para el pod de la toolbox
   resources:
     requests:
       cpu: 50m
       memory: 64Mi
 
-# 启用监控仪表盘
+# Habilitar el Dashboard de Ceph para monitorización y gestión
 dashboard:
   enabled: true
-  ssl: false
+  ssl: false # Deshabilitar SSL para el dashboard (simplifica acceso local)
 
-# 资源配置
+# Configuración de recursos para los diferentes demonios de Ceph
 resources:
+  # Ceph Manager (mgr)
   mgr:
     requests:
       cpu: 100m
       memory: 512Mi
+  # Ceph Monitor (mon)
   mon:
     requests:
       cpu: 100m
       memory: 512Mi
+  # Ceph Object Storage Daemon (osd)
   osd:
     requests:
       cpu: 150m

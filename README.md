@@ -1,132 +1,180 @@
-# WellTrack DevOps 基础设施
+# WellTrack DevOps Infraestructura
 
-本项目使用ArgoCD的App of Apps模式实现对WellTrack开发环境所需的基础设施的自动化部署与管理。
+Este proyecto utiliza el patrón "App of Apps" de Argo CD para automatizar el despliegue y la gestión de la infraestructura necesaria para el entorno de desarrollo de WellTrack.
 
-## 项目架构
+## Arquitectura del Proyecto
 
-项目基于Kubernetes构建，采用GitOps方法论，通过ArgoCD实现基础设施即代码(IaC)。
+El proyecto se basa en Kubernetes y adopta la metodología GitOps. Argo CD se utiliza para implementar la Infraestructura como Código (IaC).
 
-### 主要组件
+### Componentes Principales
 
-- **NGINX Ingress Controller** - 入站流量路由
-- **Harbor** - 容器镜像仓库
-- **PostgreSQL** - 关系型数据库
-- **Prometheus/Grafana** - 监控与可视化
-- **Loki/Promtail** - 日志收集与分析
-- **Rook/Ceph** - 分布式存储
-- **HashiCorp Vault** - 密钥管理
+-   **NGINX Ingress Controller**: Enrutamiento del tráfico entrante.
+-   **Harbor**: Registro de imágenes de contenedor.
+-   **PostgreSQL**: Base de datos relacional.
+-   **Prometheus/Grafana**: Monitorización y visualización.
+-   **Loki/Promtail**: Recolección y análisis de logs.
+-   **Rook/Ceph**: Almacenamiento distribuido.
+-   **HashiCorp Vault**: Gestión de secretos.
 
-## 项目结构
+## Estructura del Proyecto
 
 ```
 PTI-WellTrackDevops/
-├── apps/                     # App of Apps主目录
-│   ├── templates/            # ArgoCD应用模板
-│   │   ├── ingress.yaml      # Ingress Controller应用定义
-│   │   ├── harbor.yaml       # Harbor应用定义
-│   │   ├── database.yaml     # PostgreSQL应用定义
-│   │   ├── monitoring.yaml   # Prometheus/Grafana应用定义
-│   │   ├── logging.yaml      # Loki/Promtail应用定义
-│   │   ├── storage.yaml      # Rook/Ceph应用定义
-│   │   └── vault.yaml        # Vault应用定义
-│   ├── Chart.yaml            # Helm Chart定义
-│   └── values.yaml           # App of Apps配置值
-├── values/                   # 各组件Helm值文件
-│   ├── ingress.yaml          # Ingress Controller配置
-│   ├── harbor.yaml           # Harbor配置
-│   ├── argocd.yaml           # ArgoCD配置
-│   ├── database.yaml         # PostgreSQL配置
-│   ├── monitoring.yaml       # Prometheus/Grafana配置
-│   ├── logging-loki.yaml     # Loki配置
-│   ├── logging-promtail.yaml # Promtail配置
-│   └── vault.yaml            # Vault配置
-├── bootstrap.yaml            # ArgoCD引导应用
-└── README.md                 # 项目文档
+├── bootstrap/                # Chart Helm principal (App of Apps)
+│   ├── Chart.yaml            # Metadatos del chart Helm
+│   ├── values.yaml           # Configuración de las sub-aplicaciones (componentes)
+│   ├── templates/            # Plantillas de Application Argo CD para cada componente
+│   │   ├── ingress.yaml
+│   │   ├── harbor.yaml
+│   │   ├── database.yaml
+│   │   ├── monitoring.yaml
+│   │   ├── logging.yaml
+│   │   ├── storage.yaml
+│   │   └── vault.yaml
+│   └── values/               # Archivos values.yaml específicos de cada componente
+│       ├── ingress.yaml
+│       ├── harbor.yaml
+│       ├── database.yaml
+│       ├── monitoring.yaml
+│       ├── logging-loki.yaml
+│       ├── logging-promtail.yaml
+│       ├── storage.yaml
+│       └── vault.yaml
+├── bootstrap.yaml            # Aplicación Argo CD inicial (punto de entrada)
+├── .gitignore                # Archivos y directorios ignorados por Git
+└── README.md                 # Documentación principal (este archivo)
 ```
 
-### 目录说明
+### Descripción de Directorios y Archivos Clave
 
-- **apps/** - 包含ArgoCD App of Apps模式的核心定义
-  - **templates/** - 各组件的ArgoCD Application资源定义
-  - **Chart.yaml** - 定义Helm Chart元数据
-  - **values.yaml** - 包含所有子应用的配置信息
+-   **`bootstrap/`**: Contiene el chart Helm principal que implementa el patrón "App of Apps".
+    -   **`Chart.yaml`**: Define los metadatos del chart `welltrack-bootstrap`.
+    -   **`values.yaml`**: Define qué sub-aplicaciones (componentes de infraestructura) están habilitadas y especifica información básica como el chart Helm a usar, su repositorio, versión y `syncWave`.
+    -   **`templates/`**: Contiene las plantillas Helm que generan los manifiestos de `Application` de Argo CD para cada componente. Cada archivo define una sub-aplicación.
+    -   **`values/`**: Almacena los archivos `values.yaml` detallados para la configuración específica de cada componente (Ingress, Harbor, Loki, etc.). Estos archivos son referenciados e incluidos por las plantillas en `templates/`.
+-   **`bootstrap.yaml`**: Es el manifiesto de la `Application` inicial de Argo CD. Define la aplicación "raíz" que Argo CD debe monitorizar. Esta aplicación apunta al directorio `bootstrap/` dentro de este repositorio Git.
+-   **`.gitignore`**: Especifica qué archivos no deben ser rastreados por Git (ej. secretos).
+-   **`README.md`**: Documentación general del proyecto.
 
-- **values/** - 存储各组件的Helm值文件，从原始目录结构中移植过来
-  
-- **bootstrap.yaml** - ArgoCD引导应用，是整个部署的入口点
+## Proceso de Despliegue
 
-## 部署流程
+### Prerrequisitos
 
-### 前提条件
+-   Cluster Kubernetes instalado. **Si utilizas Kind para desarrollo local**, puedes crear un cluster compatible usando la configuración proporcionada:
+    -   **Mueve `a-cluster-setup/kind-config.yaml` a la raíz del proyecto.**
+    -   Ejecuta el siguiente comando:
+        ```bash
+        kind create cluster --config kind-config.yaml --name welltrack-local
+        ```
+    -   Verifica la conexión:
+        ```bash
+        kubectl cluster-info --context kind-welltrack-local
+        kubectl get nodes
+        ```
+-   Helm 3 instalado.
+-   `kubectl` configurado y conectado al cluster.
 
-- 已安装Kubernetes集群
-- 已安装Helm 3
-- 已配置kubectl并可连接到集群
+### Pasos de Despliegue
 
-### 部署步骤
+1.  **Desplegar Argo CD** (si aún no está desplegado)
+    ```bash
+    # Crear namespace para Argo CD
+    kubectl create namespace argocd
 
-1. **部署ArgoCD**
+    # Añadir repositorio Helm de Argo CD
+    helm repo add argo https://argoproj.github.io/argo-helm
+    helm repo update
 
-```bash
-# 创建ArgoCD命名空间
-kubectl create namespace argocd
+    # Desplegar Argo CD (puedes ajustar los valores según sea necesario)
+    # Ejemplo básico:
+    helm install argocd argo/argo-cd -n argocd --create-namespace
+    # Si tienes un values.yaml específico para Argo CD:
+    # helm install argocd argo/argo-cd -n argocd -f ruta/a/tu/argocd-values.yaml
+    ```
 
-# 添加ArgoCD Helm仓库
-helm repo add argo https://argoproj.github.io/argo-helm
-helm repo update
+2.  **Aplicar la Aplicación Bootstrap**
+    Una vez que Argo CD esté funcionando, aplica la aplicación raíz:
+    ```bash
+    kubectl apply -f bootstrap.yaml
+    ```
+    Esto le indicará a Argo CD que monitorice el directorio `bootstrap/` en tu repositorio Git.
 
-# 部署ArgoCD
-helm install argocd argo/argo-cd -n argocd -f values/argocd.yaml
-```
+3.  **Sincronizar en Argo CD UI**
+    - Accede a la UI de Argo CD (ver sección "Acceso a los Servicios Desplegados").
+    - Busca la aplicación `welltrack-bootstrap`.
+    - Haz clic en "Sync". Argo CD procesará el chart Helm `bootstrap/` y creará las Applications para cada componente.
 
-2. **应用引导应用**
+## Orden de Sincronización (Sync Waves)
 
-```bash
-# 应用bootstrap.yaml
-kubectl apply -f bootstrap.yaml
-```
+Los componentes se despliegan en oleadas (`syncWave`) para gestionar dependencias:
 
-3. **访问ArgoCD UI**
+1.  **Ola 1**: `ingress`, `storage`
+2.  **Ola 2**: `database`, `harbor`
+3.  **Ola 3**: `monitoring`, `logging` (loki, promtail)
+4.  **Ola 4**: `vault`
 
-```bash
-# 获取初始管理员密码
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+## Configuración de Componentes
 
-# 设置端口转发(或通过配置的Ingress访问)
-kubectl port-forward svc/argocd-server -n argocd 8080:443
-```
+La configuración detallada de cada componente se gestiona a través de los archivos `values.yaml` ubicados en el directorio `bootstrap/values/`. Modifica estos archivos para personalizar el comportamiento de cada servicio.
 
-然后访问 https://localhost:8080 或 http://argocd.welltrack.local (如果配置了Ingress)
+## Acceso a los Servicios Desplegados
 
-## 同步顺序
+Para acceder a los servicios expuestos a través de Ingress, necesitas asegurarte de que los nombres de dominio `.welltrack.local` resuelvan a la dirección IP de tu Ingress Controller.
 
-组件按照以下顺序部署(通过syncWave控制):
+### Prerrequisito: Configurar Resolución DNS (Archivo Hosts)
 
-1. **基础层(syncWave: 1)**: 
-   - Ingress Controller - 网络入口
-   - Storage - 分布式存储
+1.  **Obtén la IP Externa del Ingress Controller:**
+    El método exacto depende de cómo se expone tu servicio Ingress (LoadBalancer, NodePort). Un comando común si usas Nginx Ingress con un Service de tipo LoadBalancer es:
+    ```bash
+    kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+    # O si es NodePort y accedes a través de un nodo específico:
+    # NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}') # O usa la IP externa si aplica
+    # echo $NODE_IP
+    ```
+    Reemplaza la IP obtenida (`INGRESS_IP`) en el paso siguiente.
 
-2. **数据层(syncWave: 2)**:
-   - PostgreSQL - 数据库
-   - Harbor - 容器仓库
+2.  **Modifica tu Archivo Hosts Local:**
+    Añade las siguientes líneas a tu archivo hosts. Necesitarás permisos de administrador.
+    *   **Linux/macOS:** `/etc/hosts`
+    *   **Windows:** `C:\Windows\System32\drivers\etc\hosts`
 
-3. **可观测性层(syncWave: 3)**:
-   - Prometheus/Grafana - 监控
-   - Loki/Promtail - 日志
+    ```
+    INGRESS_IP grafana.welltrack.local harbor.welltrack.local vault.welltrack.local argocd.welltrack.local
+    ```
+    (Asegúrate de reemplazar `INGRESS_IP` con la IP real obtenida en el paso 1).
 
-4. **安全层(syncWave: 4)**:
-   - Vault - 密钥管理
+### Acceso a Servicios Específicos
 
-## 配置说明
+Una vez configurada la resolución DNS:
 
-所有组件的配置都存储在`values/`目录中，这些是从原始项目结构中的单独目录移植过来的Helm值文件。修改这些文件可以定制各组件的行为。
+1.  **Argo CD:**
+    *   **URL:** `http://argocd.welltrack.local` (o `https://` si has configurado TLS)
+    *   **Usuario:** `admin`
+    *   **Contraseña:** Obtener la contraseña inicial:
+        ```bash
+        kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
+        ```
 
-### 主要配置文件
+2.  **Grafana:**
+    *   **URL:** `http://grafana.welltrack.local`
+    *   **Usuario:** `admin`
+    *   **Contraseña:** Obtener la contraseña inicial:
+        ```bash
+        kubectl get secret --namespace monitoring prometheus-stack-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+        ```
 
-- **values/ingress.yaml** - NGINX Ingress Controller配置
-- **values/harbor.yaml** - Harbor容器仓库配置
-- **values/database.yaml** - PostgreSQL数据库配置
-- **values/monitoring.yaml** - Prometheus和Grafana监控系统配置
-- **values/logging-loki.yaml** - Loki日志聚合系统配置
-- **values/logging-promtail.yaml** - Promtail日志收集代理配置
-- **values/vault.yaml** - HashiCorp Vault机密管理工具配置
+3.  **Harbor:**
+    *   **URL:** `http://harbor.welltrack.local`
+    *   **Usuario:** `admin`
+    *   **Contraseña:** `Harbor12345` (Según `bootstrap/values/harbor.yaml`. **¡IMPORTANTE!** Esta es una contraseña insegura por defecto, ¡cámbiala en un entorno real!).
+
+4.  **Vault:**
+    *   **URL:** `http://vault.welltrack.local`
+    *   **Acceso:** Vault en modo dev (`dev.enabled: true` en `bootstrap/values/vault.yaml`) se auto-desella y tiene un token raíz predefinido. Para obtenerlo:
+        *   Revisa los logs del pod `vault-0` poco después de su inicio:
+            ```bash
+            kubectl logs -n vault vault-0
+            ```
+            Busca una línea que contenga `Root Token: <tu-token-raiz>`.
+        *   Utiliza este token para iniciar sesión en la UI o CLI.
+    *   **Nota:** El modo dev **NO** es para producción. La configuración de almacenamiento (`file`) tampoco es adecuada para producción.

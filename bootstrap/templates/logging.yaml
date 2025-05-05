@@ -1,75 +1,129 @@
 {{- if .Values.spec.logging.enable }}
-# Loki应用
+# --- Loki Application --- 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  # Nombre unico para la Application de Loki
   name: loki
+  # Namespace donde reside esta Application (argocd)
   namespace: argocd
   annotations:
+    # Define la fase de sincronizacion para Loki
     argocd.argoproj.io/sync-wave: "{{ .Values.spec.logging.syncWave }}"
   finalizers:
+    # Finalizador estandar de Argo CD
     - resources-finalizer.argocd.argoproj.io
 spec:
+  # Proyecto Argo CD
   project: {{ .Values.spec.project }}
   source:
+    # Chart Helm de Loki
     chart: {{ .Values.spec.logging.loki.chart }}
+    # Repositorio del chart de Loki
     repoURL: {{ .Values.spec.logging.loki.repoURL }}
+    # Version del chart de Loki
     targetRevision: {{ .Values.spec.logging.loki.targetRevision }}
+    # Valores para el chart de Loki
     helm:
+      # Inyecta la configuracion desde 'values/logging-loki.yaml'
       values: |
 {{ .Files.Get "values/logging-loki.yaml" | indent 8 }}
   destination:
+    # Servidor Kubernetes de destino
     server: {{ .Values.spec.destination.server }}
+    # Namespace de destino para los recursos de Loki
     namespace: {{ .Values.spec.logging.namespace }}
   syncPolicy:
+    # Politica de sincronizacion automatica
     automated:
       prune: true
       selfHeal: true
+    # Opciones de sincronizacion
     syncOptions:
+      # Crear namespace si no existe
       - CreateNamespace=true
-      # Use Server-Side Apply to handle large CRDs
+      # Usar Server-Side Apply para manejar CRDs grandes (importante para Loki y Prometheus)
       - ServerSideApply=true
-  # Ignore differences for fields managed or generated automatically
+  # Ignorar diferencias especificas durante la sincronizacion
   ignoreDifferences:
-    # Ignore CRD last-applied-configuration (already added)
+    # Ignorar anotacion 'last-applied-configuration' en CRDs (causa comun de diffs)
     - group: apiextensions.k8s.io
       kind: CustomResourceDefinition
       jsonPointers:
         - /metadata/annotations/kubectl.kubernetes.io~1last-applied-configuration
-    # Ignore CRD controller-gen version annotation
+    # Ignorar anotacion de version del controller-gen en CRDs (informativa, no funcional)
     - group: apiextensions.k8s.io
       kind: CustomResourceDefinition
       jsonPointers:
         - /metadata/annotations/controller-gen.kubebuilder.io~1version
+    # Ignorar normalizacion/formato en volumeClaimTemplates del StatefulSet
+    # NOTA: Ajustar 'name: loki' si el StatefulSet creado por el chart tiene otro nombre.
+    - group: apps
+      kind: StatefulSet
+      name: loki
+      namespace: {{ .Values.spec.logging.namespace }}
+      jsonPointers:
+        - /spec/volumeClaimTemplates # Ignorar toda la lista para cubrir formato y campos añadidos/eliminados por k8s
+    # Ignorar formato en relabelings del ServiceMonitor
+    # NOTA: Ajustar 'name: loki' si el ServiceMonitor creado por el chart tiene otro nombre.
+    - group: monitoring.coreos.com
+      kind: ServiceMonitor
+      name: loki
+      namespace: {{ .Values.spec.logging.namespace }}
+      jsonPointers:
+        - /spec/endpoints/0/relabelings # Ignorar relabelings del primer endpoint
+    # Ignorar formato en relabelings de PodLogs
+    # NOTA: Ajustar 'name: loki' si el PodLogs creado por el chart tiene otro nombre.
+    - group: monitoring.grafana.com
+      kind: PodLogs
+      name: loki
+      namespace: {{ .Values.spec.logging.namespace }}
+      jsonPointers:
+        - /spec/relabelings
 ---
-# Promtail应用
+# --- Promtail Application ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  # Nombre unico para la Application de Promtail
   name: promtail
+  # Namespace donde reside esta Application (argocd)
   namespace: argocd
   annotations:
+    # Sincronizar Promtail despues de Loki (incrementa syncWave)
     argocd.argoproj.io/sync-wave: "{{ add .Values.spec.logging.syncWave 1 }}"
   finalizers:
+    # Finalizador estandar de Argo CD
     - resources-finalizer.argocd.argoproj.io
 spec:
+  # Proyecto Argo CD
   project: {{ .Values.spec.project }}
   source:
+    # Chart Helm de Promtail
     chart: {{ .Values.spec.logging.promtail.chart }}
+    # Repositorio del chart de Promtail
     repoURL: {{ .Values.spec.logging.promtail.repoURL }}
+    # Version del chart de Promtail
     targetRevision: {{ .Values.spec.logging.promtail.targetRevision }}
+    # Valores para el chart de Promtail
     helm:
+      # Inyecta la configuracion desde 'values/logging-promtail.yaml'
       values: |
 {{ .Files.Get "values/logging-promtail.yaml" | indent 8 }}
   destination:
+    # Servidor Kubernetes de destino
     server: {{ .Values.spec.destination.server }}
+    # Namespace de destino para los recursos de Promtail (mismo que Loki)
     namespace: {{ .Values.spec.logging.namespace }}
   syncPolicy:
+    # Politica de sincronizacion automatica
     automated:
       prune: true
       selfHeal: true
+    # Opciones de sincronizacion
     syncOptions:
+      # Crear namespace si no existe
       - CreateNamespace=true
-      # Use Server-Side Apply for Promtail too, if needed
+      # Considerar habilitar ServerSideApply si Promtail gestiona CRDs o tiene anotaciones grandes
       # - ServerSideApply=true
 {{- end }}

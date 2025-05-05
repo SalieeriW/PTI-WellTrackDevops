@@ -1,27 +1,42 @@
-global: 
+global:
+  # Dominio global para acceder a Argo CD vía Ingress
   domain: argocd.welltrack.local
 
 server:
+  # Configuración del servicio del servidor de Argo CD
   service:
+    # Tipo de servicio Kubernetes (ClusterIP, NodePort, LoadBalancer)
     type: ClusterIP
+  # Configuración de Ingress para el servidor de Argo CD
   ingress:
+    # Habilitar la creación de un recurso Ingress
     enabled: true
+    # Clase de Ingress a utilizar (ej. nginx, traefik)
     ingressClassName: nginx
+    # Nombres de host para acceder a Argo CD
     hosts:
-      - argocd.welltrack.local    
+      - argocd.welltrack.local
+    # Rutas de acceso para el Ingress
     paths:
       - /
+    # Tipo de coincidencia para la ruta (Prefix, Exact)
     pathType: Prefix
+    # Anotaciones específicas del Ingress Controller
     annotations:
+      # Deshabilitar redirección SSL (útil si TLS se maneja externamente)
       nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      # Tamaño máximo del cuerpo de la petición (0 = sin límite)
       nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      # Protocolo backend (Argo CD puede requerir HTTPS internamente)
       nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      # Habilitar SSL Passthrough (si Argo CD maneja su propio TLS)
       nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+      # Forzar redirección SSL (deshabilitado aquí)
       nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
 
 # Configuración para el controlador ApplicationSet
 applicationSet:
-  # Recursos para el controlador ApplicationSet
+  # Recursos (requests/limits) para los pods del controlador ApplicationSet
   resources:
     requests:
       cpu: 100m
@@ -29,12 +44,16 @@ applicationSet:
 
 # Configuración para el Repo Server de ArgoCD
 repoServer:
-  # Recursos para los pods de Repo Server
+  # Recursos (requests/limits) para los pods de Repo Server
   resources:
     requests:
       cpu: 100m
       memory: 128Mi
 
+# --- INICIO SECCIÓN DUPLICADA/OBSOLETA --- 
+# Esta sección 'spec' parece pertenecer a la configuración de una aplicación Argo CD,
+# no a la configuración del propio Argo CD Helm chart.
+# Debería ser eliminada o revisada.
 spec:
   destination:
     server: https://kubernetes.default.svc
@@ -47,48 +66,54 @@ spec:
       selfHeal: true
   project: default
   
-  # 组件配置
+  # --- FIN SECCIÓN DUPLICADA/OBSOLETA --- 
+
+  # --- INICIO SECCIÓN DUPLICADA/OBSOLETA --- 
+  # Esta sección de configuración de componentes también parece fuera de lugar
+  # en un values.yaml para configurar el propio Argo CD.
+  # Debería estar en el values.yaml del chart 'bootstrap'.
   ingress:
     enable: true
     namespace: ingress-nginx
-    values: ../../values/ingress.yaml
+    values: ../../values/ingress.yaml # Ruta incorrecta en este contexto
     syncWave: 1
   
   harbor:
     enable: true
     namespace: harbor
-    values: ../../values/harbor.yaml
+    values: ../../values/harbor.yaml # Ruta incorrecta en este contexto
     syncWave: 2
     
   database:
     enable: true
     namespace: database
-    values: ../../values/database.yaml
+    values: ../../values/database.yaml # Ruta incorrecta en este contexto
     syncWave: 2
     
   monitoring:
     enable: true
     namespace: monitoring
-    values: ../../values/monitoring.yaml
+    values: ../../values/monitoring.yaml # Ruta incorrecta en este contexto
     syncWave: 3
     
   logging:
     enable: true
     namespace: logging
     loki:
-      values: ../../values/logging-loki.yaml
+      values: ../../values/logging-loki.yaml # Ruta incorrecta en este contexto
     promtail:
-      values: ../../values/logging-promtail.yaml
+      values: ../../values/logging-promtail.yaml # Ruta incorrecta en este contexto
     syncWave: 3
     
   storage:
     enable: true
     namespace: storage
-    values: ../../values/storage.yaml
+    values: ../../values/storage.yaml # Ruta incorrecta en este contexto
     syncWave: 1
     
   vault:
     enable: true
     namespace: vault
-    values: ../../values/vault.yaml
+    values: ../../values/vault.yaml # Ruta incorrecta en este contexto
     syncWave: 4
+  # --- FIN SECCIÓN DUPLICADA/OBSOLETA ---

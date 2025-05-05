@@ -1,33 +1,49 @@
-{{- if .Values.spec.vault.enable }}
+{{- if .Values.spec.vault.enable }} # Condicional: solo genera esta Application si .Values.spec.vault.enable es true
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  # Nombre unico para la Application de Vault
   name: vault
+  # Namespace donde reside esta Application (argocd)
   namespace: argocd
   annotations:
+    # Define la fase de sincronizacion para Vault
     argocd.argoproj.io/sync-wave: "{{ .Values.spec.vault.syncWave }}"
   finalizers:
+    # Finalizador estandar de Argo CD
     - resources-finalizer.argocd.argoproj.io
 spec:
+  # Proyecto Argo CD
   project: {{ .Values.spec.project }}
   source:
+    # Chart Helm de Vault
     chart: {{ .Values.spec.vault.chart }}
+    # Repositorio del chart
     repoURL: {{ .Values.spec.vault.repoURL }}
+    # Version del chart
     targetRevision: {{ .Values.spec.vault.targetRevision }}
+    # Valores para el chart
     helm:
+      # Inyecta la configuracion desde 'values/vault.yaml'
       values: |
 {{ .Files.Get "values/vault.yaml" | indent 8 }}
   destination:
+    # Servidor Kubernetes de destino
     server: {{ .Values.spec.destination.server }}
+    # Namespace de destino para los recursos de Vault
     namespace: {{ .Values.spec.vault.namespace }}
   syncPolicy:
+    # Politica de sincronizacion automatica
     automated:
       prune: true
       selfHeal: true
+    # Opciones de sincronizacion
     syncOptions:
+      # Crear namespace si no existe
       - CreateNamespace=true
-  # Ignore differences for fields managed by the Vault operator/injector
+  # Ignorar diferencias gestionadas por el operador/inyector de Vault
   ignoreDifferences:
+    # Ignorar el caBundle inyectado automaticamente en el MutatingWebhookConfiguration por Vault
     - group: admissionregistration.k8s.io
       kind: MutatingWebhookConfiguration
       name: vault-agent-injector-cfg

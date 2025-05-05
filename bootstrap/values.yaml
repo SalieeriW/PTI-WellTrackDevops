@@ -1,3 +1,35 @@
+# Valores globales que pueden ser heredados por los subcharts
+global:
+  # Dominio base para los servicios expuestos via Ingress
+  domain: welltrack.local
+  # StorageClass por defecto a usar por los PVCs
+  storageClass: standard
+
+# Control para habilitar o deshabilitar el despliegue de cada componente (subchart)
+argo-cd:
+  enabled: true # Habilitar despliegue de Argo CD
+
+ingress:
+  enabled: true # Habilitar despliegue de Nginx Ingress Controller
+
+harbor:
+  enabled: true # Habilitar despliegue de Harbor
+
+database:
+  enabled: true # Habilitar despliegue de PostgreSQL
+
+monitoring:
+  enabled: true # Habilitar despliegue de Prometheus Stack (incluye Grafana)
+
+logging:
+  enabled: true # Habilitar despliegue de Loki y Promtail
+
+storage:
+  enabled: true # Habilitar despliegue de Rook-Ceph
+
+vault:
+  enabled: true # Habilitar despliegue de Vault
+
 spec:
   destination:
     server: https://kubernetes.default.svc

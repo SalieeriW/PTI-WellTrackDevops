@@ -1,32 +1,32 @@
 alertmanager:
-  # Disable Alertmanager initially to save resources
+  # Deshabilitar Alertmanager inicialmente para ahorrar recursos
   enabled: false
 
 grafana:
-  # Enable Grafana for dashboarding
+  # Habilitar Grafana para visualización de dashboards
   enabled: true
   ingress:
-    # Enable Ingress for Grafana UI
+    # Habilitar Ingress para la UI de Grafana
     enabled: true
-    # Specify the IngressClass (e.g., nginx)
+    # Especificar la IngressClass (ej. nginx)
     ingressClassName: nginx
-    # Define the hostname for accessing Grafana via Ingress
+    # Definir el nombre de host para acceder a Grafana vía Ingress
     hosts:
       - grafana.welltrack.local
   persistence:
-    # Enable persistent storage for Grafana data (dashboards, users, etc.)
+    # Habilitar almacenamiento persistente para datos de Grafana (dashboards, usuarios, etc.)
     enabled: true
-    # Specify the StorageClass for Grafana's PVC
+    # Especificar la StorageClass para el PVC de Grafana
     storageClassName: "standard"
-    # Define the size of the persistent volume
+    # Definir el tamaño del volumen persistente
     size: 2Gi
-  # Define resource requests for Grafana pods
+  # Definir solicitudes de recursos para los pods de Grafana
   resources:
     requests:
       cpu: 100m
       memory: 128Mi
 
-# Disable monitoring for core Kubernetes components to save resources in a local setup
+# Deshabilitar monitorización de componentes core de Kubernetes para ahorrar recursos en entorno local
 kubeControllerManager:
   enabled: false
 kubeEtcd:
@@ -36,17 +36,17 @@ kubeScheduler:
 
 prometheus:
   prometheusSpec:
-    # Configuration for Prometheus data storage
+    # Configuración para el almacenamiento de datos de Prometheus
     storageSpec:
       volumeClaimTemplate:
         spec:
-          # Specify the StorageClass for Prometheus's PVC
+          # Especificar la StorageClass para el PVC de Prometheus
           storageClassName: "standard"
           resources:
             requests:
-              # Define the size of the persistent volume for Prometheus data
+              # Definir el tamaño del volumen persistente para datos de Prometheus
               storage: 10Gi
-    # Define resource requests and limits for Prometheus pods
+    # Definir solicitudes y límites de recursos para los pods de Prometheus
     resources:
       requests:
         cpu: 300m
@@ -55,9 +55,9 @@ prometheus:
         cpu: 1000m
         memory: 1500Mi
 
-# Configuration for the Prometheus Operator
+# Configuración para el Operador de Prometheus
 prometheusOperator:
-  # Define resource requests for the Prometheus Operator pods
+  # Definir solicitudes de recursos para los pods del Operador de Prometheus
   resources:
     requests:
       cpu: 100m

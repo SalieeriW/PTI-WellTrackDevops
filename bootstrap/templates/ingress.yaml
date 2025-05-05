@@ -1,29 +1,44 @@
-{{- if .Values.spec.ingress.enable }}
+{{- if .Values.spec.ingress.enable }} # Condicional: solo genera esta Application si .Values.spec.ingress.enable es true
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  # Nombre unico para la Application de Ingress Nginx
   name: ingress-nginx
+  # Namespace donde reside esta Application (argocd)
   namespace: argocd
   annotations:
+    # Define la fase de sincronizacion para Ingress Nginx
     argocd.argoproj.io/sync-wave: "{{ .Values.spec.ingress.syncWave }}"
   finalizers:
+    # Finalizador estandar de Argo CD
     - resources-finalizer.argocd.argoproj.io
 spec:
+  # Proyecto Argo CD
   project: {{ .Values.spec.project }}
   source:
+    # Chart Helm de Ingress Nginx
     chart: {{ .Values.spec.ingress.chart }}
+    # Repositorio del chart
     repoURL: {{ .Values.spec.ingress.repoURL }}
+    # Version del chart
     targetRevision: {{ .Values.spec.ingress.targetRevision }}
+    # Valores para el chart
     helm:
+      # Inyecta la configuracion desde 'values/ingress.yaml'
       values: |
 {{ .Files.Get "values/ingress.yaml" | indent 8 }}
   destination:
+    # Servidor Kubernetes de destino
     server: {{ .Values.spec.destination.server }}
+    # Namespace de destino para los recursos de Ingress Nginx
     namespace: {{ .Values.spec.ingress.namespace }}
   syncPolicy:
+    # Politica de sincronizacion automatica
     automated:
       prune: true
       selfHeal: true
+    # Opciones de sincronizacion
     syncOptions:
+      # Crear namespace si no existe
       - CreateNamespace=true
 {{- end }}

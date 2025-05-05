@@ -1,29 +1,46 @@
-{{- if .Values.spec.database.enable }}
+{{- if .Values.spec.database.enable }} # Condicional: solo genera esta Application si .Values.spec.database.enable es true
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  # Nombre de la Application en Argo CD (debe ser unico)
   name: postgresql
+  # Namespace donde se crea esta Application (generalmente 'argocd')
   namespace: argocd
   annotations:
+    # Define la fase de sincronizacion para esta aplicacion
     argocd.argoproj.io/sync-wave: "{{ .Values.spec.database.syncWave }}"
   finalizers:
+    # Asegura que los recursos creados por esta Application se eliminen cuando se elimine la Application
     - resources-finalizer.argocd.argoproj.io
 spec:
+  # Proyecto Argo CD al que pertenece esta Application
   project: {{ .Values.spec.project }}
   source:
+    # Nombre del chart Helm a desplegar
     chart: {{ .Values.spec.database.chart }}
+    # URL del repositorio Helm donde se encuentra el chart
     repoURL: {{ .Values.spec.database.repoURL }}
+    # Version especifica del chart a utilizar
     targetRevision: {{ .Values.spec.database.targetRevision }}
+    # Seccion para pasar valores al chart Helm
     helm:
+      # Inyecta el contenido del archivo 'values/database.yaml' como valores para el chart
       values: |
 {{ .Files.Get "values/database.yaml" | indent 8 }}
   destination:
+    # Servidor Kubernetes de destino (donde desplegar los recursos)
     server: {{ .Values.spec.destination.server }}
+    # Namespace de destino para los recursos creados por el chart Helm
     namespace: {{ .Values.spec.database.namespace }}
   syncPolicy:
+    # Habilita la sincronizacion automatica
     automated:
+      # Elimina recursos que ya no estan definidos en Git
       prune: true
+      # Permite a Argo CD corregir automaticamente desviaciones del estado deseado
       selfHeal: true
+    # Opciones adicionales para la sincronizacion
     syncOptions:
+      # Crea automaticamente el namespace de destino si no existe
       - CreateNamespace=true
 {{- end }}

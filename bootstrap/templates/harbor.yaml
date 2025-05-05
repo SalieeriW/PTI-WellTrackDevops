@@ -1,29 +1,44 @@
-{{- if .Values.spec.harbor.enable }}
+{{- if .Values.spec.harbor.enable }} # Condicional: solo genera esta Application si .Values.spec.harbor.enable es true
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  # Nombre unico para la Application de Harbor
   name: harbor
+  # Namespace donde reside esta Application (argocd)
   namespace: argocd
   annotations:
+    # Define la fase de sincronizacion para Harbor
     argocd.argoproj.io/sync-wave: "{{ .Values.spec.harbor.syncWave }}"
   finalizers:
+    # Finalizador estandar de Argo CD
     - resources-finalizer.argocd.argoproj.io
 spec:
+  # Proyecto Argo CD
   project: {{ .Values.spec.project }}
   source:
+    # Chart Helm de Harbor
     chart: {{ .Values.spec.harbor.chart }}
+    # Repositorio del chart de Harbor
     repoURL: {{ .Values.spec.harbor.repoURL }}
+    # Version del chart de Harbor
     targetRevision: {{ .Values.spec.harbor.targetRevision }}
+    # Valores para el chart de Harbor
     helm:
+      # Inyecta la configuracion desde 'values/harbor.yaml'
       values: |
 {{ .Files.Get "values/harbor.yaml" | indent 8 }}
   destination:
+    # Servidor Kubernetes de destino
     server: {{ .Values.spec.destination.server }}
+    # Namespace de destino para los recursos de Harbor
     namespace: {{ .Values.spec.harbor.namespace }}
   syncPolicy:
+    # Politica de sincronizacion automatica
     automated:
       prune: true
       selfHeal: true
+    # Opciones de sincronizacion
     syncOptions:
+      # Crear namespace si no existe
       - CreateNamespace=true
 {{- end }}

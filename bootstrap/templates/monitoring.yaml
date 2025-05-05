@@ -1,34 +1,49 @@
-{{- if .Values.spec.monitoring.enable }}
+{{- if .Values.spec.monitoring.enable }} # Condicional: solo genera esta Application si .Values.spec.monitoring.enable es true
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  # Nombre unico para la Application de Prometheus Stack
   name: prometheus-stack
+  # Namespace donde reside esta Application (argocd)
   namespace: argocd
   annotations:
+    # Define la fase de sincronizacion para Prometheus Stack
     argocd.argoproj.io/sync-wave: "{{ .Values.spec.monitoring.syncWave }}"
   finalizers:
+    # Finalizador estandar de Argo CD
     - resources-finalizer.argocd.argoproj.io
 spec:
+  # Proyecto Argo CD
   project: {{ .Values.spec.project }}
   source:
+    # Chart Helm de Kube Prometheus Stack
     chart: {{ .Values.spec.monitoring.chart }}
+    # Repositorio del chart
     repoURL: {{ .Values.spec.monitoring.repoURL }}
+    # Version del chart
     targetRevision: {{ .Values.spec.monitoring.targetRevision }}
+    # Valores para el chart
     helm:
+      # Inyecta la configuracion desde 'values/monitoring.yaml'
       values: |
 {{ .Files.Get "values/monitoring.yaml" | indent 8 }}
   destination:
+    # Servidor Kubernetes de destino
     server: {{ .Values.spec.destination.server }}
+    # Namespace de destino para los recursos de Prometheus/Grafana
     namespace: {{ .Values.spec.monitoring.namespace }}
   syncPolicy:
+    # Politica de sincronizacion automatica
     automated:
       prune: true
       selfHeal: true
+    # Opciones de sincronizacion
     syncOptions:
+      # Crear namespace si no existe
       - CreateNamespace=true
-      # Use Server-Side Apply to handle large CRDs
+      # Usar Server-Side Apply para manejar CRDs grandes (importante para Prometheus Operator CRDs)
       - ServerSideApply=true
-  # Ignore excessively large last-applied-configuration annotation for CRDs managed by this app
+  # Ignorar la anotacion last-applied-configuration en CRDs gestionados por esta aplicacion
   ignoreDifferences:
     - group: apiextensions.k8s.io
       kind: CustomResourceDefinition

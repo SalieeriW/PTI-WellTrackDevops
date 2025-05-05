@@ -1,10 +1,10 @@
 config:
-  # Configure Promtail clients (where to send logs)
+  # Configurar clientes de Promtail (dónde enviar los logs)
   clients:
-    # Send logs to the Loki gateway service within the 'logging' namespace
+    # Enviar logs al servicio gateway de Loki dentro del namespace 'logging'
     - url: http://loki-gateway.logging.svc.cluster.local/loki/api/v1/push
 
-# Define resource requests for Promtail pods (agent collecting logs)
+# Definir solicitudes de recursos para los pods de Promtail (agente que recolecta logs)
 resources:
   requests:
     cpu: 50m

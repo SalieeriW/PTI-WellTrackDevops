@@ -1,26 +1,42 @@
-{{- if .Values.spec.storage.enable }}
+{{- if .Values.spec.storage.enable }} # Condicional: solo genera esta Application si .Values.spec.storage.enable es true
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  # Nombre unico para la Application de Rook-Ceph
   name: rook-ceph
+  # Namespace donde reside esta Application (argocd)
   namespace: argocd
   annotations:
+    # Define la fase de sincronizacion para Rook-Ceph
     argocd.argoproj.io/sync-wave: "{{ .Values.spec.storage.syncWave }}"
   finalizers:
+    # Finalizador estandar de Argo CD
     - resources-finalizer.argocd.argoproj.io
 spec:
+  # Proyecto Argo CD
   project: {{ .Values.spec.project }}
   source:
+    # Chart Helm de Rook-Ceph
     chart: {{ .Values.spec.storage.chart }}
+    # Repositorio del chart
     repoURL: {{ .Values.spec.storage.repoURL }}
+    # Version del chart
     targetRevision: {{ .Values.spec.storage.targetRevision }}
+    # NOTA: Este chart parece no usar la inyeccion de values via .Files.Get
+    # Puede que tome su configuracion de forma diferente o use los valores por defecto del chart.
+    # Seria bueno verificar si necesita una seccion helm.values similar a las otras applications.
   destination:
+    # Servidor Kubernetes de destino
     server: {{ .Values.spec.destination.server }}
+    # Namespace de destino para los recursos de Rook-Ceph
     namespace: {{ .Values.spec.storage.namespace }}
   syncPolicy:
+    # Politica de sincronizacion automatica
     automated:
       prune: true
       selfHeal: true
+    # Opciones de sincronizacion
     syncOptions:
+      # Crear namespace si no existe
       - CreateNamespace=true
 {{- end }}
