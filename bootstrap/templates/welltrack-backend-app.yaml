@@ -1,0 +1,53 @@
+# PTI-WellTrackDevops/bootstrap/templates/welltrack-backend-app.yaml
+{{- if .Values.welltrackBackend.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: welltrack-backend
+  namespace: argocd # Namespace where Argo CD is running
+  # Optional: Add finalizer for Argo CD cleanup management
+  # finalizers:
+  #   - resources-finalizer.argocd.argoproj.io
+  {{- $syncWave := get .Values.welltrackBackend "syncWave" }} {{- /* Safely get syncWave value */}}
+  {{- if $syncWave }} {{- /* Check if syncWave has a truthy value */}}
+  # Assign sync wave if needed for dependencies
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ $syncWave }}"
+  {{- end }}
+spec:
+  project: default # Argo CD project
+
+  source:
+    # Source repository for the application's manifests (Helm chart)
+    repoURL: {{ .Values.welltrackBackend.source.repoURL }}
+    targetRevision: {{ .Values.welltrackBackend.source.targetRevision | default "HEAD" }}
+    path: {{ .Values.welltrackBackend.source.path }}
+    helm:
+      # We tell Argo CD to use the values.yaml from the GitOps repo,
+      # which is the one updated by the CI pipeline.
+      valueFiles:
+          - values.yaml
+      # Optional: Specify Helm release name if needed
+      # releaseName: welltrack-backend 
+
+  destination:
+    # Target cluster and namespace for the application resources
+    server: https://kubernetes.default.svc # Target cluster API server
+    namespace: {{ .Values.welltrackBackend.namespace }} # Target namespace for backend resources
+
+  syncPolicy:
+    automated:
+      prune: true # Delete resources that are no longer defined in Git
+      selfHeal: true # Automatically sync if the live state deviates from Git
+    syncOptions:
+      - CreateNamespace=true # Create the target namespace if it doesn't exist
+    # Optional: Add retry logic, especially useful for applications in sync waves
+    {{- if .Values.welltrackBackend.syncWave }}
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m0s
+    {{- end }}
+{{- end }} 

@@ -182,3 +182,6 @@ Una vez configurada la resolución DNS:
             Busca una línea que contenga `Root Token: <tu-token-raiz>`.
         *   Utiliza este token para iniciar sesión en la UI o CLI.
     *   **Nota:** El modo dev **NO** es para producción. La configuración de almacenamiento (`file`) tampoco es adecuada para producción.
+
+
+Copyright @Hongda Zhu

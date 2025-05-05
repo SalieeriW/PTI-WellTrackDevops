@@ -30,6 +30,19 @@ storage:
 vault:
   enabled: true # Habilitar despliegue de Vault
 
+# === NEW SECTION for Backend Application ===
+welltrackBackend: # Changed key name to avoid conflict with potential future chart name
+  enabled: true # Enable deployment of the backend application
+  namespace: welltrack # Target namespace for deploying backend resources
+  # Optional: Assign a sync wave if it depends on other components
+  # syncWave: 5 
+  source:
+    # GitOps repository containing the backend's Helm chart
+    repoURL: https://github.com/hongda-zhu/PTI-WellTrackGitOps.git 
+    targetRevision: HEAD # Or specify a branch/tag if needed
+    # Path to the Helm chart within the GitOps repository
+    path: charts/welltrack-backend 
+
 spec:
   destination:
     server: https://kubernetes.default.svc
