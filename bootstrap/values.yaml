@@ -38,6 +38,16 @@ storage:
 
 vault:
   enabled: true # Habilitar despliegue de Vault
+  namespace: vault # Target namespace for Vault (if different)
+  chart: vault
+  repoURL: https://helm.releases.hashicorp.com
+  targetRevision: 0.25.0
+  syncWave: 4 
+  # --- NEW Values for ClusterSecretStore ---
+  serverUrl: "http://vault.vault.svc.cluster.local:8200" # Adjust if your Vault service URL is different
+  authPath: "kubernetes" # Adjust if your K8s auth mount path in Vault is different
+  externalSecretsRole: "external-secrets" # The Vault role ESO assumes (must exist in Vault)
+  # kvVersion: "v2" # Default is v2, uncomment and change if using KV v1
 
 # === NEW SECTION for Backend Application ===
 welltrackBackend: # Changed key name to avoid conflict with potential future chart name
