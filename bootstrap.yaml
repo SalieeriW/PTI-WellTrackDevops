@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/hongda-zhu/PTI-WellTrackDevops.git
     targetRevision: HEAD
-    path: apps
+    path: bootstrap
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
