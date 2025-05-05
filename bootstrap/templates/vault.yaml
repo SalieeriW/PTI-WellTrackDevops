@@ -26,4 +26,11 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  # Ignore differences for fields managed by the Vault operator/injector
+  ignoreDifferences:
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      name: vault-agent-injector-cfg
+      jsonPointers:
+        - /webhooks/0/clientConfig/caBundle
 {{- end }}
