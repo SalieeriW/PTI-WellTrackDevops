@@ -26,6 +26,8 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      # Use Server-Side Apply to handle large CRDs
+      - ServerSideApply=true
   # Ignore excessively large last-applied-configuration annotation for CRDs managed by this app
   ignoreDifferences:
     - group: apiextensions.k8s.io
