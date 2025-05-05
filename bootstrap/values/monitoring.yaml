@@ -13,6 +13,13 @@ grafana:
     # Definir el nombre de host para acceder a Grafana vía Ingress
     hosts:
       - grafana.welltrack.local
+  # Define datasources adicionales para Grafana
+  additionalDataSources:
+    - name: Loki # Nombre que aparecerá en Grafana
+      type: loki # Tipo de datasource
+      url: http://loki-gateway.logging.svc.cluster.local # URL interna del servicio Loki Gateway
+      access: proxy # Modo de acceso (Grafana actúa como proxy)
+      isDefault: false # Opcional: poner a true si quieres que sea la fuente por defecto para logs
   persistence:
     # Habilitar almacenamiento persistente para datos de Grafana (dashboards, usuarios, etc.)
     enabled: true
