@@ -9,6 +9,15 @@ global:
 argo-cd:
   enabled: true # Habilitar despliegue de Argo CD
 
+# === NEW SECTION for External Secrets Operator ===
+external-secrets:
+  enabled: true # Enable deployment of External Secrets Operator
+  namespace: external-secrets # Namespace for the operator
+  chart: external-secrets
+  repoURL: https://charts.external-secrets.io
+  targetRevision: 0.9.13 # Use a specific stable version (check for latest)
+  syncWave: 1 # Install early
+
 ingress:
   enabled: true # Habilitar despliegue de Nginx Ingress Controller
 

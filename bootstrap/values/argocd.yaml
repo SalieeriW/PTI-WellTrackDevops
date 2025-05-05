@@ -50,13 +50,3 @@ repoServer:
     requests:
       cpu: 100m
       memory: 128Mi
-
-# --- Sections below were removed as they seemed out of place ---
-# spec: ... (Removed)
-# ingress: ... (Removed)
-# harbor: ... (Removed)
-# database: ... (Removed)
-# monitoring: ... (Removed)
-# logging: ... (Removed)
-# storage: ... (Removed)
-# vault: ... (Removed)
