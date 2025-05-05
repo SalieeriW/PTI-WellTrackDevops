@@ -10,7 +10,7 @@ argo-cd:
   enabled: true # Habilitar despliegue de Argo CD
 
 # === NEW SECTION for External Secrets Operator ===
-external-secrets:
+externalSecrets:
   enabled: true # Enable deployment of External Secrets Operator
   namespace: external-secrets # Namespace for the operator
   chart: external-secrets
