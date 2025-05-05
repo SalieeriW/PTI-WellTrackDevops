@@ -1,0 +1,26 @@
+{{- if .Values.spec.storage.enable }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rook-ceph
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ .Values.spec.storage.syncWave }}"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.spec.project }}
+  source:
+    chart: {{ .Values.spec.storage.chart }}
+    repoURL: {{ .Values.spec.storage.repoURL }}
+    targetRevision: {{ .Values.spec.storage.targetRevision }}
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: {{ .Values.spec.storage.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}

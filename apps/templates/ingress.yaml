@@ -1,0 +1,29 @@
+{{- if .Values.spec.ingress.enable }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress-nginx
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ .Values.spec.ingress.syncWave }}"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.spec.project }}
+  source:
+    chart: {{ .Values.spec.ingress.chart }}
+    repoURL: {{ .Values.spec.ingress.repoURL }}
+    targetRevision: {{ .Values.spec.ingress.targetRevision }}
+    helm:
+      valueFiles:
+        - {{ .Values.spec.ingress.values }}
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: {{ .Values.spec.ingress.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}

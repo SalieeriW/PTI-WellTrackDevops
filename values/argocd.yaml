@@ -1,0 +1,94 @@
+global: 
+  domain: argocd.welltrack.local
+
+server:
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - argocd.welltrack.local    
+    paths:
+      - /
+    pathType: Prefix
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+
+# Configuración para el controlador ApplicationSet
+applicationSet:
+  # Recursos para el controlador ApplicationSet
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Configuración para el Repo Server de ArgoCD
+repoServer:
+  # Recursos para los pods de Repo Server
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://github.com/hongda-zhu/PTI-WellTrackDevops.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+  project: default
+  
+  # 组件配置
+  ingress:
+    enable: true
+    namespace: ingress-nginx
+    values: ../../values/ingress.yaml
+    syncWave: 1
+  
+  harbor:
+    enable: true
+    namespace: harbor
+    values: ../../values/harbor.yaml
+    syncWave: 2
+    
+  database:
+    enable: true
+    namespace: database
+    values: ../../values/database.yaml
+    syncWave: 2
+    
+  monitoring:
+    enable: true
+    namespace: monitoring
+    values: ../../values/monitoring.yaml
+    syncWave: 3
+    
+  logging:
+    enable: true
+    namespace: logging
+    loki:
+      values: ../../values/logging-loki.yaml
+    promtail:
+      values: ../../values/logging-promtail.yaml
+    syncWave: 3
+    
+  storage:
+    enable: true
+    namespace: storage
+    values: ../../values/storage.yaml
+    syncWave: 1
+    
+  vault:
+    enable: true
+    namespace: vault
+    values: ../../values/vault.yaml
+    syncWave: 4

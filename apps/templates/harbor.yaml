@@ -1,0 +1,29 @@
+{{- if .Values.spec.harbor.enable }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: harbor
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ .Values.spec.harbor.syncWave }}"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.spec.project }}
+  source:
+    chart: {{ .Values.spec.harbor.chart }}
+    repoURL: {{ .Values.spec.harbor.repoURL }}
+    targetRevision: {{ .Values.spec.harbor.targetRevision }}
+    helm:
+      valueFiles:
+        - {{ .Values.spec.harbor.values }}
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: {{ .Values.spec.harbor.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}

@@ -1,0 +1,29 @@
+{{- if .Values.spec.monitoring.enable }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-stack
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ .Values.spec.monitoring.syncWave }}"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.spec.project }}
+  source:
+    chart: {{ .Values.spec.monitoring.chart }}
+    repoURL: {{ .Values.spec.monitoring.repoURL }}
+    targetRevision: {{ .Values.spec.monitoring.targetRevision }}
+    helm:
+      valueFiles:
+        - {{ .Values.spec.monitoring.values }}
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: {{ .Values.spec.monitoring.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}

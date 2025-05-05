@@ -1,0 +1,56 @@
+controller:
+  # 配置控制器服务
+  service:
+    type: NodePort
+    nodePorts:
+      http: 30080
+      https: 30443
+  
+  # 使用DaemonSet确保每个节点上有一个Ingress控制器
+  kind: DaemonSet
+  
+  # 配置控制器在哪些节点上运行
+  nodeSelector:
+    "kubernetes.io/os": linux
+    "ingress-ready": "true"
+  
+  # 启用主机端口，直接将控制器容器端口绑定到节点端口
+  hostPort:
+    enabled: true
+    ports:
+      http: 80
+      https: 443
+  
+  extraArgs:
+    enable-ssl-passthrough: "false"
+  
+  # 配置控制器以接受非安全的后端
+  config:
+    use-forwarded-headers: "true"
+    proxy-body-size: "0"
+    ssl-redirect: "false"
+    allow-backend-server-header: "true"
+    use-http2: "true"
+  
+  defaultBackendService: ""
+  
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  
+  admissionWebhooks:
+    patch:
+      nodeSelector:
+        "kubernetes.io/os": linux
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+
+defaultBackend:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi

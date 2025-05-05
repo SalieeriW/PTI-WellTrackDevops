@@ -1,0 +1,59 @@
+{{- if .Values.spec.logging.enable }}
+# Loki应用
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loki
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ .Values.spec.logging.syncWave }}"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.spec.project }}
+  source:
+    chart: {{ .Values.spec.logging.loki.chart }}
+    repoURL: {{ .Values.spec.logging.loki.repoURL }}
+    targetRevision: {{ .Values.spec.logging.loki.targetRevision }}
+    helm:
+      valueFiles:
+        - {{ .Values.spec.logging.loki.values }}
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: {{ .Values.spec.logging.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+# Promtail应用
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: promtail
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ add .Values.spec.logging.syncWave 1 }}"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.spec.project }}
+  source:
+    chart: {{ .Values.spec.logging.promtail.chart }}
+    repoURL: {{ .Values.spec.logging.promtail.repoURL }}
+    targetRevision: {{ .Values.spec.logging.promtail.targetRevision }}
+    helm:
+      valueFiles:
+        - {{ .Values.spec.logging.promtail.values }}
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: {{ .Values.spec.logging.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}

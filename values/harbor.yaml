@@ -1,0 +1,77 @@
+expose:
+  # 使用Ingress类型暴露Harbor服务
+  type: ingress
+  ingress:
+    hosts:
+      core: harbor.welltrack.local
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+  tls:
+    enabled: false
+
+# 设置外部URL为Ingress域名
+externalURL: http://harbor.welltrack.local
+
+# 禁用持久化存储以简化测试环境
+persistence:
+  enabled: false
+
+# 禁用Trivy扫描功能以节省资源
+trivy:
+  enabled: false
+
+# 禁用Notary以简化配置
+notary:
+  enabled: false
+
+# Portal资源配置
+portal:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+# Core资源配置
+core:
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+  # 禁用XSRF保护以简化API访问
+  xsrfKey: ""
+  secretName: ""
+
+# JobService资源配置  
+jobservice:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+# Registry资源配置
+registry:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+
+# 禁用Redis持久化
+redis:
+  internal:
+    persistence:
+      enabled: false
+
+# 确保数据库正确初始化
+database:
+  # 使用内部PostgreSQL
+  type: internal
+  internal:
+    password: "Harbor12345"
+    # 禁用PostgreSQL持久化
+    persistence:
+      enabled: false
+
+# 日志级别，便于调试
+logLevel: debug

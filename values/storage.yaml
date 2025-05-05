@@ -1,0 +1,53 @@
+# Rook-Ceph集群配置
+operator:
+  # 操作员配置
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  
+  # 允许Ceph在非专用节点上运行（适用于开发环境）
+  tolerations:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/control-plane
+      operator: Exists
+
+# Ceph集群配置
+cephClusterSpec:
+  # 基于目录的数据目录，适用于测试/开发环境
+  dataDirHostPath: /var/lib/rook
+  
+  # 禁用设备发现，使用目录存储
+  storage:
+    useAllNodes: true
+    useAllDevices: false
+    directories:
+      - path: /var/lib/rook/store
+
+# Ceph工具箱配置
+toolbox:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+# 启用监控仪表盘
+dashboard:
+  enabled: true
+  ssl: false
+
+# 资源配置
+resources:
+  mgr:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+  mon:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+  osd:
+    requests:
+      cpu: 150m
+      memory: 1Gi 

@@ -1,0 +1,80 @@
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://github.com/hongda-zhu/PTI-WellTrackDevops.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+  project: default
+  
+  # 组件配置
+  ingress:
+    enable: true
+    namespace: ingress-nginx
+    values: ../../values/ingress.yaml
+    syncWave: 1
+    chart: ingress-nginx
+    repoURL: https://kubernetes.github.io/ingress-nginx
+    targetRevision: 4.7.1
+  
+  harbor:
+    enable: true
+    namespace: harbor
+    values: ../../values/harbor.yaml
+    syncWave: 2
+    chart: harbor
+    repoURL: https://helm.goharbor.io
+    targetRevision: 1.12.2
+    
+  database:
+    enable: true
+    namespace: database
+    values: ../../values/database.yaml
+    syncWave: 2
+    chart: postgresql
+    repoURL: https://charts.bitnami.com/bitnami
+    targetRevision: 12.2.2
+    
+  monitoring:
+    enable: true
+    namespace: monitoring
+    values: ../../values/monitoring.yaml
+    syncWave: 3
+    chart: kube-prometheus-stack
+    repoURL: https://prometheus-community.github.io/helm-charts
+    targetRevision: 45.27.2
+    
+  logging:
+    enable: true
+    namespace: logging
+    syncWave: 3
+    loki:
+      chart: loki
+      repoURL: https://grafana.github.io/helm-charts
+      targetRevision: 5.8.11
+      values: ../../values/logging-loki.yaml
+    promtail:
+      chart: promtail
+      repoURL: https://grafana.github.io/helm-charts
+      targetRevision: 6.11.3
+      values: ../../values/logging-promtail.yaml
+    
+  storage:
+    enable: true
+    namespace: rook-ceph
+    syncWave: 1
+    chart: rook-ceph
+    repoURL: https://charts.rook.io/release
+    targetRevision: 1.12.3
+    
+  vault:
+    enable: true
+    namespace: vault
+    values: ../../values/vault.yaml
+    syncWave: 4
+    chart: vault
+    repoURL: https://helm.releases.hashicorp.com
+    targetRevision: 0.25.0

@@ -1,0 +1,64 @@
+alertmanager:
+  # Disable Alertmanager initially to save resources
+  enabled: false
+
+grafana:
+  # Enable Grafana for dashboarding
+  enabled: true
+  ingress:
+    # Enable Ingress for Grafana UI
+    enabled: true
+    # Specify the IngressClass (e.g., nginx)
+    ingressClassName: nginx
+    # Define the hostname for accessing Grafana via Ingress
+    hosts:
+      - grafana.welltrack.local
+  persistence:
+    # Enable persistent storage for Grafana data (dashboards, users, etc.)
+    enabled: true
+    # Specify the StorageClass for Grafana's PVC
+    storageClassName: "standard"
+    # Define the size of the persistent volume
+    size: 2Gi
+  # Define resource requests for Grafana pods
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Disable monitoring for core Kubernetes components to save resources in a local setup
+kubeControllerManager:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubeScheduler:
+  enabled: false
+
+prometheus:
+  prometheusSpec:
+    # Configuration for Prometheus data storage
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          # Specify the StorageClass for Prometheus's PVC
+          storageClassName: "standard"
+          resources:
+            requests:
+              # Define the size of the persistent volume for Prometheus data
+              storage: 10Gi
+    # Define resource requests and limits for Prometheus pods
+    resources:
+      requests:
+        cpu: 300m
+        memory: 750Mi
+      limits:
+        cpu: 1000m
+        memory: 1500Mi
+
+# Configuration for the Prometheus Operator
+prometheusOperator:
+  # Define resource requests for the Prometheus Operator pods
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi

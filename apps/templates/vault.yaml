@@ -1,0 +1,29 @@
+{{- if .Values.spec.vault.enable }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ .Values.spec.vault.syncWave }}"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.spec.project }}
+  source:
+    chart: {{ .Values.spec.vault.chart }}
+    repoURL: {{ .Values.spec.vault.repoURL }}
+    targetRevision: {{ .Values.spec.vault.targetRevision }}
+    helm:
+      valueFiles:
+        - {{ .Values.spec.vault.values }}
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: {{ .Values.spec.vault.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}
