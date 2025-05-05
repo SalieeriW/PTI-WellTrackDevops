@@ -15,8 +15,8 @@ spec:
     repoURL: {{ .Values.spec.ingress.repoURL }}
     targetRevision: {{ .Values.spec.ingress.targetRevision }}
     helm:
-      valueFiles:
-        - {{ .Values.spec.ingress.values }}
+      values: |
+{{ .Files.Get "values/ingress.yaml" | indent 8 }}
   destination:
     server: {{ .Values.spec.destination.server }}
     namespace: {{ .Values.spec.ingress.namespace }}

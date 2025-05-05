@@ -15,8 +15,8 @@ spec:
     repoURL: {{ .Values.spec.database.repoURL }}
     targetRevision: {{ .Values.spec.database.targetRevision }}
     helm:
-      valueFiles:
-        - {{ .Values.spec.database.values }}
+      values: |
+{{ .Files.Get "values/database.yaml" | indent 8 }}
   destination:
     server: {{ .Values.spec.destination.server }}
     namespace: {{ .Values.spec.database.namespace }}

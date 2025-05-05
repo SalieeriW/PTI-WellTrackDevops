@@ -15,8 +15,8 @@ spec:
     repoURL: {{ .Values.spec.harbor.repoURL }}
     targetRevision: {{ .Values.spec.harbor.targetRevision }}
     helm:
-      valueFiles:
-        - {{ .Values.spec.harbor.values }}
+      values: |
+{{ .Files.Get "values/harbor.yaml" | indent 8 }}
   destination:
     server: {{ .Values.spec.destination.server }}
     namespace: {{ .Values.spec.harbor.namespace }}
