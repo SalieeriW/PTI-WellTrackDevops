@@ -42,7 +42,7 @@ spec:
       selfHeal: true
   project: default
   
-  # 组件配置
+  # Componentes a desplegar 
   ingress:
     enable: true
     namespace: ingress-nginx

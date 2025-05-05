@@ -139,7 +139,7 @@ Para acceder a los servicios expuestos a través de Ingress, necesitas asegurart
     *   **Windows:** `C:\Windows\System32\drivers\etc\hosts`
 
     ```
-    INGRESS_IP grafana.welltrack.local harbor.welltrack.local vault.welltrack.local argocd.welltrack.local
+    INGRESS_IP grafana.welltrack.local harbor.welltrack.local vault.welltrack.local argocd.welltrack.local prometheus.welltrack.local
     ```
     (Asegúrate de reemplazar `INGRESS_IP` con la IP real obtenida en el paso 1).
 
@@ -163,12 +163,16 @@ Una vez configurada la resolución DNS:
         kubectl get secret --namespace monitoring prometheus-stack-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
         ```
 
-3.  **Harbor:**
+3.  **Prometheus:**
+    *   **URL:** `http://prometheus.welltrack.local`
+    *   Accede a esta URL en tu navegador para ver la interfaz de usuario de Prometheus.
+
+4.  **Harbor:**
     *   **URL:** `http://harbor.welltrack.local`
     *   **Usuario:** `admin`
     *   **Contraseña:** `Harbor12345` (Según `bootstrap/values/harbor.yaml`. **¡IMPORTANTE!** Esta es una contraseña insegura por defecto, ¡cámbiala en un entorno real!).
 
-4.  **Vault:**
+5.  **Vault:**
     *   **URL:** `http://vault.welltrack.local`
     *   **Acceso:** Vault en modo dev (`dev.enabled: true` en `bootstrap/values/vault.yaml`) se auto-desella y tiene un token raíz predefinido. Para obtenerlo:
         *   Revisa los logs del pod `vault-0` poco después de su inicio:

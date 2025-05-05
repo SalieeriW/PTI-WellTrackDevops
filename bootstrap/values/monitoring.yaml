@@ -1,6 +1,6 @@
 alertmanager:
   # Deshabilitar Alertmanager inicialmente para ahorrar recursos
-  enabled: false
+  enabled: true
 
 grafana:
   # Habilitar Grafana para visualización de dashboards
@@ -35,6 +35,17 @@ kubeScheduler:
   enabled: false
 
 prometheus:
+
+  enabled: true
+  ingress:
+    # Habilitar Ingress para la UI de Grafana
+    enabled: true
+    # Especificar la IngressClass (ej. nginx)
+    ingressClassName: nginx
+    # Definir el nombre de host para acceder a Grafana vía Ingress
+    hosts:
+      - prometheus.welltrack.local
+
   prometheusSpec:
     # Configuración para el almacenamiento de datos de Prometheus
     storageSpec:
