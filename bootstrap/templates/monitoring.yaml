@@ -26,4 +26,10 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  # Ignore excessively large last-applied-configuration annotation for CRDs managed by this app
+  ignoreDifferences:
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      jsonPointers:
+        - /metadata/annotations/kubectl.kubernetes.io~1last-applied-configuration
 {{- end }}
