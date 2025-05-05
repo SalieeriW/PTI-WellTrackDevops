@@ -29,14 +29,18 @@ spec:
       - CreateNamespace=true
       # Use Server-Side Apply to handle large CRDs
       - ServerSideApply=true
-  # Ignore excessively large last-applied-configuration annotation for CRDs
+  # Ignore differences for fields managed or generated automatically
   ignoreDifferences:
+    # Ignore CRD last-applied-configuration (already added)
     - group: apiextensions.k8s.io
       kind: CustomResourceDefinition
-      # Apply to all CRDs managed by this app, or specify names if needed
-      # name: grafanaagents.monitoring.grafana.com 
       jsonPointers:
         - /metadata/annotations/kubectl.kubernetes.io~1last-applied-configuration
+    # Ignore CRD controller-gen version annotation
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      jsonPointers:
+        - /metadata/annotations/controller-gen.kubebuilder.io~1version
 ---
 # Promtail应用
 apiVersion: argoproj.io/v1alpha1
