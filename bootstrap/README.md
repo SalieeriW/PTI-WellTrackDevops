@@ -1,22 +1,23 @@
-# Chart Helm Bootstrap (App of Apps)
+# Plantillas de Aplicación Argo CD (Sub-Aplicaciones)
 
-Este directorio contiene el chart Helm principal (`welltrack-bootstrap`) que implementa el patrón "App of Apps" para gestionar toda la infraestructura de WellTrack.
-
-## Contenido
-
--   **`Chart.yaml`**: Define los metadatos de este chart Helm (nombre, versión, descripción).
--   **`values.yaml`**: Archivo principal de configuración. Aquí se define:
-    -   Configuraciones globales (destino, repositorio fuente, política de sincronización).
-    -   Qué componentes (sub-aplicaciones) están habilitados (`enable: true/false`).
-    -   Información básica de cada componente para localizar su chart Helm (nombre del chart, repositorio, versión) y su `syncWave`.
--   **`templates/`**: Contiene las plantillas Helm que generan los manifiestos de `Application` de Argo CD para cada uno de los componentes de infraestructura (Ingress, Harbor, Base de Datos, etc.).
--   **`values/`**: Contiene los archivos `values.yaml` específicos y detallados para la configuración de cada componente individual. Estos archivos son incluidos ("inlineados") por las plantillas correspondientes en el directorio `templates/`.
+Este directorio contiene las plantillas Helm que definen los recursos `Application` de Argo CD para cada componente de la infraestructura de WellTrack (Ingress, Harbor, Base de Datos, Monitorización, Logging, Almacenamiento, Vault).
 
 ## Funcionamiento
 
-La aplicación Argo CD definida en `../../bootstrap.yaml` apunta a este directorio. Cuando Argo CD sincroniza `welltrack-bootstrap`, procesa este chart Helm:
+Cada archivo `.yaml` en este directorio es una plantilla Helm que genera un manifiesto `Application` de Argo CD.
 
-1.  Lee `bootstrap/values.yaml` para saber qué componentes desplegar.
-2.  Para cada componente habilitado, utiliza la plantilla correspondiente en `bootstrap/templates/` para generar un manifiesto de `Application` Argo CD.
-3.  Estas plantillas de `Application` referencian el chart Helm real del componente (ej. el chart oficial de Harbor) y utilizan la función `.Files.Get` de Helm para inyectar la configuración específica desde el archivo correspondiente en `bootstrap/values/`.
-4.  Argo CD crea entonces estas `Application` secundarias, las cuales a su vez despliegan y gestionan los componentes reales en el cluster Kubernetes. 
+-   **Control de Habilitación**: La generación de cada `Application` está condicionada por la variable `enable` correspondiente en el archivo `../values.yaml` (ej. `{{- if .Values.spec.ingress.enable }}`).
+-   **Definición de la Fuente**: Cada plantilla utiliza valores de `../values.yaml` para especificar:
+    -   El chart Helm real del componente (`.Values.spec.<componente>.chart`).
+    -   El repositorio Helm donde se encuentra el chart (`.Values.spec.<componente>.repoURL`).
+    -   La versión específica del chart a desplegar (`.Values.spec.<componente>.targetRevision`).
+-   **Inyección de Configuración**: En lugar de usar `valueFiles` (que busca archivos en el repositorio del *chart* del componente), estas plantillas utilizan la sección `helm.values` junto con la función `.Files.Get` de Helm:
+    ```yaml
+    helm:
+      values: |
+    {{ .Files.Get "values/<componente>.yaml" | indent 8 }}
+    ```
+    Esto lee el contenido del archivo de configuración específico del componente desde el directorio `../values/` (dentro de *este* chart `bootstrap`) y lo inyecta directamente como un bloque de texto YAML en la definición de la `Application`. Argo CD usará este YAML como los valores para renderizar el chart Helm del componente.
+-   **Destino y Sincronización**: También se definen el namespace de destino (`.Values.spec.<componente>.namespace`), el servidor de destino (`.Values.spec.destination.server`), la política de sincronización y la `syncWave` (`.Values.spec.<componente>.syncWave`).
+
+En resumen, estos archivos actúan como "conectores" que definen cómo Argo CD debe desplegar cada componente, utilizando la configuración centralizada en `../values.yaml` y la configuración detallada en `../values/`. 
