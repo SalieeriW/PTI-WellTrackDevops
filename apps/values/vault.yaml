@@ -1,0 +1,31 @@
+server:
+  # 配置 Vault 服务器特定设置
+  dev:
+    # 启用 Vault 开发模式（单节点，内存存储，自动解封）- 不适用于生产环境
+    enabled: true
+  # 为 Vault 服务器 pod 定义资源请求
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  # 配置 Ingress 以允许从 Kubernetes 外部访问 Vault
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    pathType: Prefix
+    hosts:
+      - host: vault.welltrack.local
+        paths: 
+          - /
+
+# 配置 Vault UI
+ui:
+  # 启用 Vault web UI
+  enabled: true
+  # 通过 ClusterIP 暴露 UI 服务（默认仅内部访问）
+  serviceType: ClusterIP
+
+# 配置 Vault 的存储后端
+storage:
+  # 配置 Vault 的存储后端类型
+  type: file 

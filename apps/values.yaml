@@ -14,7 +14,7 @@ spec:
   ingress:
     enable: true
     namespace: ingress-nginx
-    values: ../values/ingress.yaml
+    values: values/ingress.yaml
     syncWave: 1
     chart: ingress-nginx
     repoURL: https://kubernetes.github.io/ingress-nginx
@@ -23,7 +23,7 @@ spec:
   harbor:
     enable: true
     namespace: harbor
-    values: ../values/harbor.yaml
+    values: values/harbor.yaml
     syncWave: 2
     chart: harbor
     repoURL: https://helm.goharbor.io
@@ -32,7 +32,7 @@ spec:
   database:
     enable: true
     namespace: database
-    values: ../values/database.yaml
+    values: values/database.yaml
     syncWave: 2
     chart: postgresql
     repoURL: https://charts.bitnami.com/bitnami
@@ -41,7 +41,7 @@ spec:
   monitoring:
     enable: true
     namespace: monitoring
-    values: ../values/monitoring.yaml
+    values: values/monitoring.yaml
     syncWave: 3
     chart: kube-prometheus-stack
     repoURL: https://prometheus-community.github.io/helm-charts
@@ -55,12 +55,12 @@ spec:
       chart: loki
       repoURL: https://grafana.github.io/helm-charts
       targetRevision: 5.8.11
-      values: ../values/logging-loki.yaml
+      values: values/logging-loki.yaml
     promtail:
       chart: promtail
       repoURL: https://grafana.github.io/helm-charts
       targetRevision: 6.11.3
-      values: ../values/logging-promtail.yaml
+      values: values/logging-promtail.yaml
     
   storage:
     enable: true
@@ -73,7 +73,7 @@ spec:
   vault:
     enable: true
     namespace: vault
-    values: ../values/vault.yaml
+    values: values/vault.yaml
     syncWave: 4
     chart: vault
     repoURL: https://helm.releases.hashicorp.com
