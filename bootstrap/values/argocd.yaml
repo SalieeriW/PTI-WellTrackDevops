@@ -18,21 +18,22 @@ server:
       - argocd.welltrack.local
     # Rutas de acceso para el Ingress
     paths:
-      - /
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            port:
+              name: http
     # Tipo de coincidencia para la ruta (Prefix, Exact)
-    pathType: Prefix
+    # pathType: Prefix # Removed duplicate pathType definition
     # Anotaciones específicas del Ingress Controller
     annotations:
-      # Deshabilitar redirección SSL (útil si TLS se maneja externamente)
-      nginx.ingress.kubernetes.io/ssl-redirect: "false"
       # Tamaño máximo del cuerpo de la petición (0 = sin límite)
       nginx.ingress.kubernetes.io/proxy-body-size: "0"
-      # Protocolo backend (Argo CD puede requerir HTTPS internamente)
-      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-      # Habilitar SSL Passthrough (si Argo CD maneja su propio TLS)
-      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-      # Forzar redirección SSL (deshabilitado aquí)
-      nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+      # Note: Removed backend-protocol, ssl-passthrough, ssl-redirect annotations for simplicity
+  # Add extra arguments to disable internal HTTPS redirect
+  extraArgs:
+    - --insecure
 
 # Configuración para el controlador ApplicationSet
 applicationSet:
@@ -50,70 +51,12 @@ repoServer:
       cpu: 100m
       memory: 128Mi
 
-# --- INICIO SECCIÓN DUPLICADA/OBSOLETA --- 
-# Esta sección 'spec' parece pertenecer a la configuración de una aplicación Argo CD,
-# no a la configuración del propio Argo CD Helm chart.
-# Debería ser eliminada o revisada.
-spec:
-  destination:
-    server: https://kubernetes.default.svc
-  source:
-    repoURL: https://github.com/hongda-zhu/PTI-WellTrackDevops.git
-    targetRevision: HEAD
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-  project: default
-  
-  # --- FIN SECCIÓN DUPLICADA/OBSOLETA --- 
-
-  # --- INICIO SECCIÓN DUPLICADA/OBSOLETA --- 
-  # Esta sección de configuración de componentes también parece fuera de lugar
-  # en un values.yaml para configurar el propio Argo CD.
-  # Debería estar en el values.yaml del chart 'bootstrap'.
-  ingress:
-    enable: true
-    namespace: ingress-nginx
-    values: ../../values/ingress.yaml # Ruta incorrecta en este contexto
-    syncWave: 1
-  
-  harbor:
-    enable: true
-    namespace: harbor
-    values: ../../values/harbor.yaml # Ruta incorrecta en este contexto
-    syncWave: 2
-    
-  database:
-    enable: true
-    namespace: database
-    values: ../../values/database.yaml # Ruta incorrecta en este contexto
-    syncWave: 2
-    
-  monitoring:
-    enable: true
-    namespace: monitoring
-    values: ../../values/monitoring.yaml # Ruta incorrecta en este contexto
-    syncWave: 3
-    
-  logging:
-    enable: true
-    namespace: logging
-    loki:
-      values: ../../values/logging-loki.yaml # Ruta incorrecta en este contexto
-    promtail:
-      values: ../../values/logging-promtail.yaml # Ruta incorrecta en este contexto
-    syncWave: 3
-    
-  storage:
-    enable: true
-    namespace: storage
-    values: ../../values/storage.yaml # Ruta incorrecta en este contexto
-    syncWave: 1
-    
-  vault:
-    enable: true
-    namespace: vault
-    values: ../../values/vault.yaml # Ruta incorrecta en este contexto
-    syncWave: 4
-  # --- FIN SECCIÓN DUPLICADA/OBSOLETA ---
+# --- Sections below were removed as they seemed out of place ---
+# spec: ... (Removed)
+# ingress: ... (Removed)
+# harbor: ... (Removed)
+# database: ... (Removed)
+# monitoring: ... (Removed)
+# logging: ... (Removed)
+# storage: ... (Removed)
+# vault: ... (Removed)
