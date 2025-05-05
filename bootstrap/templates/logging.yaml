@@ -27,6 +27,14 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  # Ignore excessively large last-applied-configuration annotation for CRDs
+  ignoreDifferences:
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      # Apply to all CRDs managed by this app, or specify names if needed
+      # name: grafanaagents.monitoring.grafana.com 
+      jsonPointers:
+        - /metadata/annotations/kubectl.kubernetes.io~1last-applied-configuration
 ---
 # Promtail应用
 apiVersion: argoproj.io/v1alpha1

@@ -44,8 +44,8 @@ loki:
         store: tsdb
         # Specify the object store type (matches storage.type)
         object_store: filesystem
-        # Define the schema version (v13 required by recent Loki versions)
-        schema: v13
+        # Use schema v12 for Loki 2.8.x
+        schema: v12
         # Configure the index parameters
         index:
           prefix: index_
