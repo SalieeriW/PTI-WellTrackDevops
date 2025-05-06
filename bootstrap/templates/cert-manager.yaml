@@ -23,7 +23,7 @@ spec:
       # The path must be relative to the root of the repository specified in spec.source.repoURL.
       valueFiles:
         # Path relative to the Git repository root.
-        - bootstrap/values/cert-manager.yaml
+{{ .Files.Get "values/cert-manager.yaml" | indent 8 }}
       # You can still add inline values here if needed, but ensure installCRDs: false is handled.
       # The value from valueFiles takes precedence if defined in both places.
       # values: |
