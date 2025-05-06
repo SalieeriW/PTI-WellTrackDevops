@@ -1,6 +1,5 @@
-{{- /* Get component spec using helper */}}
-{{- $certManagerSpec := include "welltrack.componentSpec" (dict "componentName" "cert-manager" "context" $) | fromYaml }}
-{{- if $certManagerSpec.enable }}
+{{- if (hasKey .Values.spec "cert-manager") }}
+{{- if (index .Values.spec "cert-manager").enable }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -13,12 +12,12 @@ spec:
   destination:
     server: {{ .Values.spec.destination.server }}
     # Target namespace for cert-manager resources
-    namespace: {{ $certManagerSpec.namespace }}
+    namespace: {{ (index .Values.spec "cert-manager").namespace }}
   source:
     # Source Helm chart details
-    chart: {{ $certManagerSpec.chart }}
-    repoURL: {{ $certManagerSpec.repoURL }}
-    targetRevision: {{ $certManagerSpec.targetRevision }}
+    chart: {{ (index .Values.spec "cert-manager").chart }}
+    repoURL: {{ (index .Values.spec "cert-manager").repoURL }}
+    targetRevision: {{ (index .Values.spec "cert-manager").targetRevision }}
     helm:
       # Load values from the specific values file
       valueFiles:
@@ -26,7 +25,8 @@ spec:
       # Important: Disable CRD installation via Helm
       # CRDs must be applied manually before this application syncs
       values: |
-        installCRDs: false 
+        installCRDs: false
+         
         # We can add more specific Helm values here or in the values/cert-manager.yaml file
   syncPolicy:
     automated:
@@ -35,7 +35,8 @@ spec:
     syncOptions:
       - CreateNamespace=true # Ensure the namespace exists
   # Assign sync wave based on values.yaml
-  info: 
-    - name: 'Sync Wave'
-      value: {{ $certManagerSpec.syncWave | quote }}
-{{- end }} 
+  info:
+     - name: 'Sync Wave'
+       value: {{ (index .Values.spec "cert-manager").syncWave | quote }}
+{{- end }}
+{{- end }}
