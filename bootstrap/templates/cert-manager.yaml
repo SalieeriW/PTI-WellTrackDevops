@@ -19,12 +19,14 @@ spec:
     repoURL: {{ (index .Values.spec "cert-manager").repoURL }}
     targetRevision: {{ (index .Values.spec "cert-manager").targetRevision }}
     helm:
-      # Important: Disable CRD installation via Helm
-      # CRDs must be applied manually before this application syncs
-      values: |
-{{ .Files.Get "values/cert-manager.yaml" | indent 8 }}
-         
-        # We can add more specific Helm values here or in the values/cert-manager.yaml file
+      # Use valueFiles to reference the specific values file for cert-manager.
+      # The path must be relative to the root of the repository specified in spec.source.repoURL.
+      valueFiles:
+        - bootstrap/values/cert-manager.yaml
+      # You can still add inline values here if needed, but ensure installCRDs: false is handled.
+      # The value from valueFiles takes precedence if defined in both places.
+      # values: |
+      #  someInlineValue: true
   syncPolicy:
     automated:
       prune: true
