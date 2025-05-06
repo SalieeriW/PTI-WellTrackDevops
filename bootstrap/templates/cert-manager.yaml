@@ -1,4 +1,4 @@
-{{- if .Values.spec.certManager.enable }}
+{{- if .Values.spec.cert-manager.enable }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -11,12 +11,12 @@ spec:
   destination:
     server: {{ .Values.spec.destination.server }}
     # Target namespace for cert-manager resources
-    namespace: {{ .Values.spec.certManager.namespace }} 
+    namespace: {{ .Values.spec.cert-manager.namespace }}
   source:
     # Source Helm chart details
-    chart: {{ .Values.spec.certManager.chart }}
-    repoURL: {{ .Values.spec.certManager.repoURL }}
-    targetRevision: {{ .Values.spec.certManager.targetRevision }}
+    chart: {{ .Values.spec.cert-manager.chart }}
+    repoURL: {{ .Values.spec.cert-manager.repoURL }}
+    targetRevision: {{ .Values.spec.cert-manager.targetRevision }}
     helm:
       # Load values from the specific values file
       valueFiles:
@@ -35,5 +35,5 @@ spec:
   # Assign sync wave based on values.yaml
   info: 
     - name: 'Sync Wave'
-      value: {{ .Values.spec.certManager.syncWave | quote }}
+      value: {{ .Values.spec.cert-manager.syncWave | quote }}
 {{- end }} 
