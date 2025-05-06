@@ -1,6 +1,75 @@
 alertmanager:
   # Deshabilitar Alertmanager inicialmente para ahorrar recursos
   enabled: true
+  # Configuración de Ingress para la UI de Alertmanager
+  ingress:
+    enabled: true
+    ingressClassName: nginx # Asegúrate de que coincida con tu Ingress Controller
+    annotations:
+      cert-manager.io/cluster-issuer: selfsigned-cluster-issuer # Si usas cert-manager
+      # Añade otras anotaciones si es necesario
+    hosts:
+      - alertmanager.welltrack.local # Nombre de host para Alertmanager
+    paths:
+      - /
+    tls:
+      - hosts:
+          - alertmanager.welltrack.local
+        secretName: alertmanager-tls # Nombre del Secret para el certificado TLS
+  # Configuración de Alertmanager para enrutamiento y receptores
+  config:
+    global:
+      resolve_timeout: 5m
+      # --- Detalles del Servidor SMTP (Obligatorio para notificaciones por email) ---
+      # --- Temporalmente deshabilitado ya que no hay servidor SMTP configurado ---
+      # Reemplaza los marcadores de posición con los detalles reales de tu servidor SMTP.
+      # smtp_smarthost: 'YOUR_SMTP_HOST:PORT'  # Ejemplo: 'smtp.gmail.com:587'
+      # smtp_from: 'alertmanager@YOUR_DOMAIN.COM' # Ejemplo: 'alertmanager@welltrack.local' o 'tu-email-de-envio@gmail.com'
+      # smtp_auth_username: 'YOUR_SMTP_USERNAME' # Ejemplo: 'tu-email@gmail.com'
+      # Para smtp_auth_password, se RECOMIENDA ENCARECIDAMENTE usar un secreto de Kubernetes en producción.
+      # Ejemplo para una contraseña directa (menos seguro, solo para pruebas):
+      # smtp_auth_password: 'YOUR_SMTP_PASSWORD'
+      # Ejemplo para usar un secreto de Kubernetes:
+      # smtp_auth_password:
+      #   name: smtp-credentials-secret
+      #   key: password
+      # smtp_require_tls: true # Normalmente true para servidores SMTP modernos
+    route:
+      group_by: ['job', 'alertname'] # Agrupar alertas por job y alertname
+      group_wait: 30s               # Cuánto tiempo esperar antes de enviar una notificación para un nuevo grupo
+      group_interval: 5m            # Cuánto tiempo esperar antes de enviar una notificación para una nueva alerta en un grupo existente
+      repeat_interval: 4h           # Cuánto tiempo esperar antes de reenviar una notificación para una alerta activa
+      receiver: 'default-receiver'  # Receptor por defecto si ninguna otra ruta coincide
+      # Definir reglas de enrutamiento específicas
+      routes:
+        - receiver: 'email-notifications'
+          match_re:
+            severity: critical|warning # Coincidir con alertas de severidad critical o warning
+          continue: true # Si coincide, continuar verificando otras rutas si las hay
+    receivers:
+      - name: 'default-receiver'
+        # Este receptor se usa si ninguna ruta específica coincide.
+        # Podrías configurarlo para registrar en logs o enviar a un canal general.
+        # Ejemplo para un webhook:
+        # webhook_configs:
+        #   - url: 'http://your-logging-webhook/alerts'
+      - name: 'email-notifications'
+        email_configs:
+          - to: 'qtzhuzhu@gmail.com' # Dirección de correo del destinatario (actualizada por el usuario)
+            send_resolved: true # Enviar una notificación cuando una alerta se resuelva
+            # Opcional: Asunto y cuerpo del correo personalizados se pueden configurar aquí
+            # headers:
+            #   subject: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .GroupLabels.alertname }} for {{ .CommonLabels.job }}'
+            # html: '{{ template "email.default.html" . }}'
+
+            # --- Anulación SMTP por Receptor (Opcional) ---
+            # Si necesitas configuraciones SMTP específicas para este receptor que difieran de las globales:
+            # Descomenta y configura abajo. De lo contrario, se usarán las configuraciones globales.
+            # from: 'override-sender@example.com'
+            # smarthost: 'override-smtp.example.com:587'
+            # auth_username: 'override_smtp_user'
+            # auth_password: 'OVERRIDE_SMTP_PASSWORD_OR_SECRET_REF'
+            # require_tls: true
 
 grafana:
   # Habilitar Grafana para visualización de dashboards
