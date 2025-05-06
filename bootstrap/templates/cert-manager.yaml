@@ -22,10 +22,6 @@ spec:
       # Inyecta el contenido del archivo 'values/database.yaml' como valores para el chart
       values: |
 {{ .Files.Get "values/cert-manager.yaml" | indent 8 }}
-      # You can still add inline values here if needed, but ensure installCRDs: false is handled.
-      # The value from valueFiles takes precedence if defined in both places.
-      # values: |
-      #  someInlineValue: true
   syncPolicy:
     automated:
       prune: true

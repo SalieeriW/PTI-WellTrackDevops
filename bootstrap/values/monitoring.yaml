@@ -8,11 +8,21 @@ grafana:
   ingress:
     # Habilitar Ingress para la UI de Grafana
     enabled: true
+    # Añade o modifica las anotaciones existentes
+    annotations:
+      # Esta anotación le dice a cert-manager que use este ClusterIssuer para este Ingress
+      cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
     # Especificar la IngressClass (ej. nginx)
     ingressClassName: nginx
     # Definir el nombre de host para acceder a Grafana vía Ingress
     hosts:
       - grafana.welltrack.local
+    # Añade esta sección TLS
+    tls:
+      - hosts:
+          - grafana.welltrack.local
+        # El nombre del Secret que cert-manager creará y gestionará.
+        secretName: grafana-tls
   # Define datasources adicionales para Grafana
   additionalDataSources:
     - name: Loki # Nombre que aparecerá en Grafana
