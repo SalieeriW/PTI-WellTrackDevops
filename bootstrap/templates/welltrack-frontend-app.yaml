@@ -1,0 +1,48 @@
+# PTI-WellTrackDevops/bootstrap/templates/welltrack-frontend-app.yaml
+{{- if .Values.welltrackFrontend.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: welltrack-frontend
+  namespace: argocd # Namespace where Argo CD is running
+  {{- $syncWave := get .Values.welltrackFrontend "syncWave" }} {{- /* Safely get syncWave value */}}
+  {{- if $syncWave }} {{- /* Check if syncWave has a truthy value */}}
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ $syncWave }}"
+  {{- end }}
+spec:
+  project: default # Argo CD project
+
+  source:
+    # Source repository for the application's manifests (Helm chart)
+    repoURL: {{ .Values.welltrackFrontend.source.repoURL }}
+    targetRevision: {{ .Values.welltrackFrontend.source.targetRevision | default "HEAD" }}
+    path: {{ .Values.welltrackFrontend.source.path }}
+    helm:
+      # Use the values.yaml from the GitOps repo (updated by frontend CI)
+      valueFiles:
+          - values.yaml
+      # Optional: Specify Helm release name if needed
+      # releaseName: welltrack-frontend 
+
+  destination:
+    # Target cluster and namespace for the application resources
+    server: https://kubernetes.default.svc # Target cluster API server
+    namespace: {{ .Values.welltrackFrontend.namespace }} # Target namespace for frontend resources
+
+  syncPolicy:
+    automated:
+      prune: true # Delete resources that are no longer defined in Git
+      selfHeal: true # Automatically sync if the live state deviates from Git
+    syncOptions:
+      - CreateNamespace=true # Create the target namespace if it doesn't exist
+    # Optional: Add retry logic, especially useful for applications in sync waves
+    {{- if $syncWave }}
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m0s
+    {{- end }}
+{{- end }} 

@@ -9,15 +9,6 @@ global:
 argo-cd:
   enabled: true # Habilitar despliegue de Argo CD
 
-# === NEW SECTION for External Secrets Operator ===
-externalSecrets:
-  enabled: true # Enable deployment of External Secrets Operator
-  namespace: external-secrets # Namespace for the operator
-  chart: external-secrets
-  repoURL: https://charts.external-secrets.io
-  targetRevision: 0.9.13 # Use a specific stable version (check for latest)
-  syncWave: 1 # Install early
-
 ingress:
   enabled: true # Habilitar despliegue de Nginx Ingress Controller
 
@@ -38,29 +29,24 @@ storage:
 
 vault:
   enabled: true # Habilitar despliegue de Vault
-  namespace: vault # Target namespace for Vault (if different)
-  chart: vault
-  repoURL: https://helm.releases.hashicorp.com
-  targetRevision: 0.25.0
-  syncWave: 4 
-  # --- NEW Values for ClusterSecretStore ---
-  serverUrl: "http://vault.vault.svc.cluster.local:8200" # Adjust if your Vault service URL is different
-  authPath: "kubernetes" # Adjust if your K8s auth mount path in Vault is different
-  externalSecretsRole: "external-secrets" # The Vault role ESO assumes (must exist in Vault)
-  # kvVersion: "v2" # Default is v2, uncomment and change if using KV v1
-
-# === NEW SECTION for Backend Application ===
-welltrackBackend: # Changed key name to avoid conflict with potential future chart name
+ 
+# Configuració de l'aplicació Backend
+welltrackBackend:
   enabled: true # Enable deployment of the backend application
   namespace: welltrack # Target namespace for deploying backend resources
-  # Optional: Assign a sync wave if it depends on other components
-  # syncWave: 5 
   source:
-    # GitOps repository containing the backend's Helm chart
     repoURL: https://github.com/hongda-zhu/PTI-WellTrackGitOps.git 
-    targetRevision: HEAD # Or specify a branch/tag if needed
-    # Path to the Helm chart within the GitOps repository
+    targetRevision: HEAD 
     path: charts/welltrack-backend 
+
+# Configuració de l'aplicació Frontend
+welltrackFrontend:
+  enabled: true # Enable deployment of the frontend application
+  namespace: welltrack # Target namespace (same as backend or different if needed)
+  source:
+    repoURL: https://github.com/hongda-zhu/PTI-WellTrackGitOps.git 
+    targetRevision: HEAD 
+    path: charts/welltrack-frontend
 
 spec:
   destination:

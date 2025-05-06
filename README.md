@@ -6,15 +6,23 @@ Este proyecto utiliza el patrón "App of Apps" de Argo CD para automatizar el de
 
 El proyecto se basa en Kubernetes y adopta la metodología GitOps. Argo CD se utiliza para implementar la Infraestructura como Código (IaC).
 
-### Componentes Principales
+### Componentes de Infraestructura Gestionados
 
 -   **NGINX Ingress Controller**: Enrutamiento del tráfico entrante.
--   **Harbor**: Registro de imágenes de contenedor.
+-   **Harbor**: Registro de imágenes de contenedor privado.
 -   **PostgreSQL**: Base de datos relacional.
 -   **Prometheus/Grafana**: Monitorización y visualización.
 -   **Loki/Promtail**: Recolección y análisis de logs.
 -   **Rook/Ceph**: Almacenamiento distribuido.
 -   **HashiCorp Vault**: Gestión de secretos.
+
+### Aplicaciones WellTrack Gestionadas
+
+-   **welltrack-frontend**: La interfaz de usuario de la aplicación.
+-   **welltrack-backend**: La API y lógica de negocio del backend.
+-   *(Posiblemente welltrack-ml u otras futuras)*
+
+La *definición* del despliegue de estas aplicaciones (es decir, la creación de sus `Application` en Argo CD) se gestiona aquí, pero sus *charts Helm específicos* residen en el repositorio `PTI-WellTrackGitOps`.
 
 ## Estructura del Proyecto
 
@@ -22,25 +30,31 @@ El proyecto se basa en Kubernetes y adopta la metodología GitOps. Argo CD se ut
 PTI-WellTrackDevops/
 ├── bootstrap/                # Chart Helm principal (App of Apps)
 │   ├── Chart.yaml            # Metadatos del chart Helm
-│   ├── values.yaml           # Configuración de las sub-aplicaciones (componentes)
-│   ├── templates/            # Plantillas de Application Argo CD para cada componente
+│   ├── values.yaml           # Configuración de habilitación/deshabilitación y fuentes globales/spec
+│   ├── README.md             # README específico del directorio bootstrap/templates
+│   ├── templates/            # Plantillas de Application Argo CD para cada componente y aplicación
 │   │   ├── ingress.yaml
 │   │   ├── harbor.yaml
 │   │   ├── database.yaml
 │   │   ├── monitoring.yaml
 │   │   ├── logging.yaml
 │   │   ├── storage.yaml
-│   │   └── vault.yaml
-│   └── values/               # Archivos values.yaml específicos de cada componente
+│   │   ├── vault.yaml
+│   │   # Descomentar si external-secrets está habilitado en values.yaml
+│   │   # ├── external-secrets-app.yaml
+│   │   ├── welltrack-frontend-app.yaml # Plantilla para App Frontend
+│   │   └── welltrack-backend-app.yaml # Plantilla para App Backend
+│   └── values/               # Archivos values.yaml específicos de cada componente de INFRAESTRUCTURA
 │       ├── ingress.yaml
 │       ├── harbor.yaml
 │       ├── database.yaml
 │       ├── monitoring.yaml
-│       ├── logging-loki.yaml
-│       ├── logging-promtail.yaml
+│       ├── logging.yaml
 │       ├── storage.yaml
 │       └── vault.yaml
+│       # ... (etc.)
 ├── bootstrap.yaml            # Aplicación Argo CD inicial (punto de entrada)
+├── kind-config.yaml          # (Opcional) Configuración para crear un cluster Kind local
 ├── .gitignore                # Archivos y directorios ignorados por Git
 └── README.md                 # Documentación principal (este archivo)
 ```
@@ -48,12 +62,13 @@ PTI-WellTrackDevops/
 ### Descripción de Directorios y Archivos Clave
 
 -   **`bootstrap/`**: Contiene el chart Helm principal que implementa el patrón "App of Apps".
-    -   **`Chart.yaml`**: Define los metadatos del chart `welltrack-bootstrap`.
-    -   **`values.yaml`**: Define qué sub-aplicaciones (componentes de infraestructura) están habilitadas y especifica información básica como el chart Helm a usar, su repositorio, versión y `syncWave`.
-    -   **`templates/`**: Contiene las plantillas Helm que generan los manifiestos de `Application` de Argo CD para cada componente. Cada archivo define una sub-aplicación.
-    -   **`values/`**: Almacena los archivos `values.yaml` detallados para la configuración específica de cada componente (Ingress, Harbor, Loki, etc.). Estos archivos son referenciados e incluidos por las plantillas en `templates/`.
--   **`bootstrap.yaml`**: Es el manifiesto de la `Application` inicial de Argo CD. Define la aplicación "raíz" que Argo CD debe monitorizar. Esta aplicación apunta al directorio `bootstrap/` dentro de este repositorio Git.
--   **`.gitignore`**: Especifica qué archivos no deben ser rastreados por Git (ej. secretos).
+    -   **`Chart.yaml`**: Define los metadatos del chart `bootstrap`.
+    -   **`values.yaml`**: Define qué componentes de infraestructura y aplicaciones están habilitados (`enabled: true/false` en el nivel superior). Especifica información clave como el namespace, chart/repositorio/path de origen y `syncWave` para cada componente dentro de la sección `spec:`. También puede contener configuraciones globales.
+    -   **`templates/`**: Contiene las plantillas Helm que generan los manifiestos de `Application` de Argo CD para cada componente de infraestructura (Ingress, Vault, etc.) y para cada aplicación final (frontend, backend). Cada archivo `.yaml` aquí define una sub-aplicación gestionada por Argo CD. Consulta `bootstrap/README.md` para más detalles sobre cómo funcionan estas plantillas.
+    -   **`values/`**: Almacena los archivos `values.yaml` detallados para la configuración específica de los charts Helm de los componentes de *infraestructura* (Ingress, Harbor, Loki, etc.). Estos archivos son referenciados e incluidos por las plantillas correspondientes en `templates/` mediante `helm.values` y `.Files.Get`. La configuración específica de las *aplicaciones* (frontend/backend) reside en sus respectivos `values.yaml` dentro del repositorio `PTI-WellTrackGitOps` y se referencia usando `helm.valueFiles`.
+-   **`bootstrap.yaml`**: Es el manifiesto de la `Application` inicial de Argo CD. Define la aplicación "raíz" (`welltrack-bootstrap`) que Argo CD debe monitorizar. Esta aplicación apunta al directorio `bootstrap/` dentro de este repositorio Git.
+-   **`kind-config.yaml`**: Configuración opcional para crear un cluster local con Kind para desarrollo.
+-   **`.gitignore`**: Especifica qué archivos no deben ser rastreados por Git.
 -   **`README.md`**: Documentación general del proyecto.
 
 ## Proceso de Despliegue
@@ -61,7 +76,7 @@ PTI-WellTrackDevops/
 ### Prerrequisitos
 
 -   Cluster Kubernetes instalado. **Si utilizas Kind para desarrollo local**, puedes crear un cluster compatible usando la configuración proporcionada:
-    -   **Mueve `a-cluster-setup/kind-config.yaml` a la raíz del proyecto.**
+    -   **(Opcional) Asegúrate de tener `kind-config.yaml` en la raíz del proyecto.**
     -   Ejecuta el siguiente comando:
         ```bash
         kind create cluster --config kind-config.yaml --name welltrack-local
@@ -78,18 +93,14 @@ PTI-WellTrackDevops/
 
 1.  **Desplegar Argo CD** (si aún no está desplegado)
     ```bash
-    # Crear namespace para Argo CD
     kubectl create namespace argocd
-
-    # Añadir repositorio Helm de Argo CD
+    # Recomendado usar Helm para instalar Argo CD
     helm repo add argo https://argoproj.github.io/argo-helm
     helm repo update
-
-    # Desplegar Argo CD (puedes ajustar los valores según sea necesario)
-    # Ejemplo básico:
-    helm install argocd argo/argo-cd -n argocd --create-namespace
-    # Si tienes un values.yaml específico para Argo CD:
-    # helm install argocd argo/argo-cd -n argocd -f ruta/a/tu/argocd-values.yaml
+    # Reemplaza <version> con la versión deseada del chart de Argo CD
+    helm install argocd argo/argo-cd -n argocd --create-namespace -f bootstrap/values/argocd.yaml --version <version> 
+    # Alternativamente, si no usas Helm o quieres una instalación rápida (menos configurable):
+    # kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml 
     ```
 
 2.  **Aplicar la Aplicación Bootstrap**
@@ -102,20 +113,25 @@ PTI-WellTrackDevops/
 3.  **Sincronizar en Argo CD UI**
     - Accede a la UI de Argo CD (ver sección "Acceso a los Servicios Desplegados").
     - Busca la aplicación `welltrack-bootstrap`.
-    - Haz clic en "Sync". Argo CD procesará el chart Helm `bootstrap/` y creará las Applications para cada componente.
+    - Haz clic en "Sync". Argo CD procesará el chart Helm `bootstrap/` y creará las `Application` para cada componente de infraestructura y aplicación habilitado.
+    - Las `Application` de los componentes de infraestructura apuntarán a sus respectivos charts Helm (definidos en `bootstrap/values.yaml` bajo `spec:`).
+    - Las `Application` para `welltrack-frontend` y `welltrack-backend` apuntarán a sus charts Helm dentro del repositorio `PTI-WellTrackGitOps`, usando los `values.yaml` de ese repositorio.
 
 ## Orden de Sincronización (Sync Waves)
 
-Los componentes se despliegan en oleadas (`syncWave`) para gestionar dependencias:
+Los componentes se despliegan en oleadas (`syncWave`) para gestionar dependencias, según lo definido en `bootstrap/values.yaml` bajo la sección `spec:`. El orden típico configurado es:
 
-1.  **Ola 1**: `ingress`, `storage`
-2.  **Ola 2**: `database`, `harbor`
-3.  **Ola 3**: `monitoring`, `logging` (loki, promtail)
-4.  **Ola 4**: `vault`
+1.  **Ola 1**: `ingress` (namespace: `ingress-nginx`), `storage` (namespace: `rook-ceph`)
+2.  **Ola 2**: `database` (namespace: `database`), `harbor` (namespace: `harbor`)
+3.  **Ola 3**: `monitoring` (namespace: `monitoring`), `logging` (namespace: `logging`)
+4.  **Ola 4**: `vault` (namespace: `vault`)
+5.  **Aplicaciones**: `welltrack-backend`, `welltrack-frontend` (en namespace `welltrack`) - Se despliegan después de las olas de infraestructura. Pueden tener `syncWave` asignada en `bootstrap/values.yaml` si es necesario gestionar dependencias más específicas con componentes de infraestructura.
+
+*Nota: Revisa los valores `syncWave` en `bootstrap/values.yaml` para el orden exacto.*
 
 ## Configuración de Componentes
 
-La configuración detallada de cada componente se gestiona a través de los archivos `values.yaml` ubicados en el directorio `bootstrap/values/`. Modifica estos archivos para personalizar el comportamiento de cada servicio.
+La configuración detallada de cada componente de *infraestructura* se gestiona a través de los archivos `values.yaml` ubicados en el directorio `bootstrap/values/`. La configuración de las *aplicaciones* (frontend/backend) se gestiona en sus respectivos `values.yaml` dentro del repositorio `PTI-WellTrackGitOps`.
 
 ## Acceso a los Servicios Desplegados
 
@@ -127,28 +143,32 @@ Para acceder a los servicios expuestos a través de Ingress, necesitas asegurart
     El método exacto depende de cómo se expone tu servicio Ingress (LoadBalancer, NodePort). Un comando común si usas Nginx Ingress con un Service de tipo LoadBalancer es:
     ```bash
     kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
-    # O si es NodePort y accedes a través de un nodo específico:
+    # Si la IP no aparece inmediatamente, espera unos momentos.
+    # Si usas Kind y `extraPortMappings`, la IP será localhost (127.0.0.1).
+    # Si usas NodePort, necesitas la IP de uno de los nodos y el NodePort:
     # NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}') # O usa la IP externa si aplica
-    # echo $NODE_IP
+    # NODE_PORT=$(kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath='{.spec.ports[?(@.name=="http")].nodePort}') # Para HTTP
+    # echo "Accede via http://$NODE_IP:$NODE_PORT"
     ```
-    Reemplaza la IP obtenida (`INGRESS_IP`) en el paso siguiente.
+    Reemplaza la IP obtenida (`INGRESS_IP`, que podría ser `127.0.0.1` si usas Kind) en el paso siguiente.
 
 2.  **Modifica tu Archivo Hosts Local:**
     Añade las siguientes líneas a tu archivo hosts. Necesitarás permisos de administrador.
-    *   **Linux/macOS:** `/etc/hosts`
-    *   **Windows:** `C:\Windows\System32\drivers\etc\hosts`
+    *   **Linux/macOS:** `sudo nano /etc/hosts`
+    *   **Windows:** Abrir Notepad como Administrador y editar `C:\Windows\System32\drivers\etc\hosts`
 
     ```
-    INGRESS_IP grafana.welltrack.local harbor.welltrack.local vault.welltrack.local argocd.welltrack.local prometheus.welltrack.local
+    # Reemplaza INGRESS_IP con la IP real (p.ej., 127.0.0.1 para Kind con port-mapping)
+    INGRESS_IP grafana.welltrack.local harbor.welltrack.local vault.welltrack.local argocd.welltrack.local prometheus.welltrack.local app.welltrack.local
     ```
-    (Asegúrate de reemplazar `INGRESS_IP` con la IP real obtenida en el paso 1).
+    *(Asegúrate de incluir `app.welltrack.local` o el dominio que uses para el frontend/backend si lo expones vía Ingress).*
 
 ### Acceso a Servicios Específicos
 
 Una vez configurada la resolución DNS:
 
 1.  **Argo CD:**
-    *   **URL:** `http://argocd.welltrack.local` (o `https://` si has configurado TLS)
+    *   **URL:** `http://argocd.welltrack.local` (Según `bootstrap/values/argocd.yaml`. Podría ser HTTPS si se configura TLS).
     *   **Usuario:** `admin`
     *   **Contraseña:** Obtener la contraseña inicial:
         ```bash
@@ -156,32 +176,37 @@ Una vez configurada la resolución DNS:
         ```
 
 2.  **Grafana:**
-    *   **URL:** `http://grafana.welltrack.local`
+    *   **URL:** `http://grafana.welltrack.local` (Asumiendo que el Ingress está configurado en `bootstrap/values/monitoring.yaml` o similar).
     *   **Usuario:** `admin`
-    *   **Contraseña:** Obtener la contraseña inicial:
+    *   **Contraseña:** Depende de la configuración del chart `kube-prometheus-stack`. A menudo se guarda en un secret:
         ```bash
-        kubectl get secret --namespace monitoring prometheus-stack-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+        # El nombre del secret puede variar ligeramente según la versión del chart
+        kubectl get secret --namespace monitoring kube-prometheus-stack-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
         ```
 
 3.  **Prometheus:**
-    *   **URL:** `http://prometheus.welltrack.local`
+    *   **URL:** `http://prometheus.welltrack.local` (Asumiendo Ingress configurado).
     *   Accede a esta URL en tu navegador para ver la interfaz de usuario de Prometheus.
 
 4.  **Harbor:**
-    *   **URL:** `http://harbor.welltrack.local`
+    *   **URL:** `http://harbor.welltrack.local` (Asumiendo Ingress configurado en `bootstrap/values/harbor.yaml`).
     *   **Usuario:** `admin`
-    *   **Contraseña:** `Harbor12345` (Según `bootstrap/values/harbor.yaml`. **¡IMPORTANTE!** Esta es una contraseña insegura por defecto, ¡cámbiala en un entorno real!).
+    *   **Contraseña:** La definida en `bootstrap/values/harbor.yaml` (ej. `Harbor12345`). **¡IMPORTANTE!** Cambia la contraseña por defecto en entornos reales.
 
 5.  **Vault:**
-    *   **URL:** `http://vault.welltrack.local`
-    *   **Acceso:** Vault en modo dev (`dev.enabled: true` en `bootstrap/values/vault.yaml`) se auto-desella y tiene un token raíz predefinido. Para obtenerlo:
+    *   **URL:** `http://vault.welltrack.local` (Según `bootstrap/values/vault.yaml`).
+    *   **Acceso (Modo Dev):** Si Vault está en modo dev (`server.dev.enabled: true` en `bootstrap/values/vault.yaml`), se auto-desella y tiene un token raíz predefinido. Para obtenerlo:
         *   Revisa los logs del pod `vault-0` poco después de su inicio:
             ```bash
             kubectl logs -n vault vault-0
             ```
             Busca una línea que contenga `Root Token: <tu-token-raiz>`.
         *   Utiliza este token para iniciar sesión en la UI o CLI.
-    *   **Nota:** El modo dev **NO** es para producción. La configuración de almacenamiento (`file`) tampoco es adecuada para producción.
+    *   **Nota:** El modo dev **NO** es para producción. La configuración de almacenamiento (`storage.type: file`) tampoco es adecuada para producción. Revisa `bootstrap/values/vault.yaml` para la configuración exacta.
 
+## Contribuciones
 
+Las contribuciones son bienvenidas. Por favor, sigue las prácticas estándar de Git (fork, branch, pull request).
+
+---
 Copyright @Hongda Zhu
