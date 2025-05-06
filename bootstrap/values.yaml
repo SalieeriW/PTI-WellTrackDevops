@@ -142,12 +142,12 @@ spec:
     syncWave: 2
 
   falco:
-    enable: true # Aquest 'enable' és el que realment controla la plantilla
-    namespace: falco # Namespace on es desplegarà Falco
-    chart: falco # Nom del chart de Helm
-    repoURL: https://falcosecurity.github.io/charts # URL del repositori de Helm
-    targetRevision: 4.21.3 # Versió específica del chart a utilitzar
-    syncWave: 4 # Onada de sincronització per Falco
+    enable: true  
+    namespace: falco 
+    chart: falco 
+    repoURL: https://falcosecurity.github.io/charts 
+    targetRevision: 4.21.3 
+    syncWave: 4 
 
   base-manifests:
     enable: true

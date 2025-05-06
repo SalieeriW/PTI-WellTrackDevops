@@ -1,15 +1,14 @@
 # valors específics per al chart de Helm de Falco
-# Comments in english
 falcosidekick:
   enabled: true
   replicaCount: 1
   serviceMonitor:
     additionalLabels:
-      release: monitoring # Label per identificar el release de monitoring
+      release: monitoring 
     enabled: true
   webui:
-    enabled: false # Interfície d'usuari de Falcosidekick desactivada
-tty: true # Adjuntar el procés de Falco a una tty per logs en temps real
+    enabled: false 
+tty: true 
 customRules:
   falco-exceptions.yaml: |-
     # Regla per detectar contacte amb el servidor API de K8S des d'un contenidor
