@@ -1,0 +1,75 @@
+# valors específics per al chart de Helm de Falco
+# Comments in english
+falcosidekick:
+  enabled: true
+  replicaCount: 1
+  serviceMonitor:
+    additionalLabels:
+      release: monitoring # Label per identificar el release de monitoring
+    enabled: true
+  webui:
+    enabled: false # Interfície d'usuari de Falcosidekick desactivada
+tty: true # Adjuntar el procés de Falco a una tty per logs en temps real
+customRules:
+  falco-exceptions.yaml: |-
+    # Regla per detectar contacte amb el servidor API de K8S des d'un contenidor
+    - rule: Contact K8S API Server From Container
+      override:
+        exceptions: append # Afegir a les excepcions existents
+      exceptions:
+        # Controladors Ingress NGINX
+        - name: ingress-nginx-exception
+          fields: [container.image.repository]
+          comps: [=]
+          values: [["registry.k8s.io/ingress-nginx/controller"]]
+        
+        # Contenidors Ceph CSI
+        - name: ceph-csi-exception
+          fields: [container.image.repository]
+          comps: [=]
+          values: [["quay.io/cephcsi/cephcsi"]]
+        
+        # Sidecars Ceph CSI
+        - name: ceph-csi-sidecar-exception
+          fields: [k8s.ns.name, container.name]
+          comps: [=, in]
+          values: [["ceph-csi-rbd", ["csi-provisioner", "csi-attacher", "csi-resizer"]]]
+        
+        # Operacions de backup de Velero
+        - name: velero-exception
+          fields: [container.image.repository]
+          comps: [=]
+          values: [["docker.io/velero/velero"]]
+        
+        # External Secrets Operator
+        - name: external-secrets-exception
+          fields: [container.image.repository]
+          comps: [=]
+          values: [["oci.external-secrets.io/external-secrets/external-secrets"]]
+        
+        # Operadors comuns de Kubernetes
+        - name: operators-exception
+          fields: [k8s.ns.name]
+          comps: [in]
+          values: [[["prometheus-system", "cert-manager", "kube-system", "monitoring"]]]
+        
+        # Excepcions per namespace
+        - name: velero-namespace-exception
+          fields: [k8s.ns.name]
+          comps: [=]
+          values: [["velero"]]
+        
+        - name: ingress-nginx-namespace-exception
+          fields: [k8s.ns.name]
+          comps: [=]
+          values: [["ingress-nginx"]]
+        
+        - name: external-secrets-namespace-exception
+          fields: [k8s.ns.name]
+          comps: [=]
+          values: [["external-secrets"]]
+        
+        - name: argocd-namespace-exception
+          fields: [k8s.ns.name]
+          comps: [=]
+          values: [["argocd"]] 

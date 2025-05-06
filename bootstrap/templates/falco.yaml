@@ -1,0 +1,40 @@
+# Plantilla per a l'aplicació Falco
+# Comments in english
+{{- if .Values.spec.falco.enable }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  # Nom de la sub-aplicació Argo CD per Falco
+  name: falco
+  namespace: argocd # Namespace on resideix aquesta Application (normalment 'argocd')
+  annotations:
+    # Assigna l'onada de sincronització definida a values.yaml
+    argocd.argoproj.io/sync-wave: "{{ .Values.spec.falco.syncWave | default 0 | int }}"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # Projecte Argo CD (heretat o definit)
+  project: {{ .Values.spec.project | default "default" }}
+  source:
+    # Font definida a la secció 'falco' de values.yaml
+    chart: {{ .Values.spec.falco.chart }}
+    repoURL: {{ .Values.spec.falco.repoURL }}
+    targetRevision: {{ .Values.spec.falco.targetRevision }}
+    helm:
+      # Injecta els valors específics des de bootstrap/values/falco.yaml
+      values: |
+{{ .Files.Get "values/falco.yaml" | indent 8 }}
+  destination:
+    # Servidor de destí (heretat de spec.destination.server)
+    server: {{ .Values.spec.destination.server }}
+    # Namespace de destí definit a la secció 'falco' de values.yaml
+    namespace: {{ .Values.spec.falco.namespace }}
+  syncPolicy:
+    # Política de sincronització (pot heretar de spec.syncPolicy o ser específica)
+    automated:
+      prune: {{ .Values.spec.syncPolicy.automated.prune | default true }}
+      selfHeal: {{ .Values.spec.syncPolicy.automated.selfHeal | default true }}
+    # Opcions específiques per a aquesta app
+    syncOptions:
+      - CreateNamespace=true # Crear namespace si no existeix
+{{- end }} 

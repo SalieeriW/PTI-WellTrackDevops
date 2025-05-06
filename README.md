@@ -15,6 +15,7 @@ El proyecto se basa en Kubernetes y adopta la metodología GitOps. Argo CD se ut
 -   **Loki/Promtail**: Recolección y análisis de logs.
 -   **Rook/Ceph**: Almacenamiento distribuido.
 -   **HashiCorp Vault**: Gestión de secretos.
+-   **Falco**: Seguridad en tiempo de ejecución y detección de anomalías.
 
 ### Aplicaciones WellTrack Gestionadas
 
@@ -40,6 +41,7 @@ PTI-WellTrackDevops/
 │   │   ├── logging.yaml
 │   │   ├── storage.yaml
 │   │   ├── vault.yaml
+│   │   ├── falco.yaml
 │   │   # Descomentar si external-secrets está habilitado en values.yaml
 │   │   # ├── external-secrets-app.yaml
 │   │   ├── welltrack-frontend-app.yaml # Plantilla para App Frontend
@@ -52,6 +54,7 @@ PTI-WellTrackDevops/
 │       ├── logging.yaml
 │       ├── storage.yaml
 │       └── vault.yaml
+│       └── falco.yaml
 │       # ... (etc.)
 ├── bootstrap.yaml            # Aplicación Argo CD inicial (punto de entrada)
 ├── kind-config.yaml          # (Opcional) Configuración para crear un cluster Kind local
@@ -124,7 +127,7 @@ Los componentes se despliegan en oleadas (`syncWave`) para gestionar dependencia
 1.  **Ola 1**: `ingress` (namespace: `ingress-nginx`), `storage` (namespace: `rook-ceph`)
 2.  **Ola 2**: `database` (namespace: `database`), `harbor` (namespace: `harbor`)
 3.  **Ola 3**: `monitoring` (namespace: `monitoring`), `logging` (namespace: `logging`)
-4.  **Ola 4**: `vault` (namespace: `vault`)
+4.  **Ola 4**: `vault` (namespace: `vault`), `falco` (namespace: `falco`)
 5.  **Aplicaciones**: `welltrack-backend`, `welltrack-frontend` (en namespace `welltrack`) - Se despliegan después de las olas de infraestructura. Pueden tener `syncWave` asignada en `bootstrap/values.yaml` si es necesario gestionar dependencias más específicas con componentes de infraestructura.
 
 *Nota: Revisa los valores `syncWave` en `bootstrap/values.yaml` para el orden exacto.*

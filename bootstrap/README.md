@@ -6,7 +6,7 @@ Este directorio contiene las plantillas Helm que definen los recursos `Applicati
 
 Cada archivo `.yaml` en este directorio es una plantilla Helm que genera un manifiesto `Application` de Argo CD.
 
--   **Control de Habilitación**: La generación de cada `Application` está condicionada por la variable `enabled` correspondiente en el archivo `../values.yaml` (ej. `{{- if .Values.ingress.enabled }}` o `{{- if .Values.welltrackFrontend.enabled }}`).
+-   **Control de Habilitación**: La generación de cada `Application` está condicionada por la variable `enabled` correspondiente en el archivo `../values.yaml` (ej. `{{- if .Values.ingress.enabled }}`, `{{- if .Values.spec.falco.enable }}` o `{{- if .Values.welltrackFrontend.enabled }}`).
 -   **Definición de la Fuente**: Cada plantilla utiliza valores de `../values.yaml` para especificar la fuente de los manifiestos o chart del componente/aplicación:
     -   Para **componentes de infraestructura**: Normalmente se especifica `chart`, `repoURL` y `targetRevision` para un chart Helm externo.
     -   Para **aplicaciones principales** (frontend, backend): Normalmente se especifica `repoURL` (apuntando a `PTI-WellTrackGitOps`), `path` (al chart dentro de GitOps) y `targetRevision`.
@@ -16,7 +16,7 @@ Cada archivo `.yaml` en este directorio es una plantilla Helm que genera un mani
       values: |
     {{ .Files.Get "values/<componente>.yaml" | indent 8 }}
     ```
-    Esto lee el contenido del archivo de configuración específico del componente desde el directorio `../values/` (dentro de *este* chart `bootstrap`) y lo inyecta directamente como los valores para renderizar el chart Helm del componente de infraestructura.
+    Esto lee el contenido del archivo de configuración específico del componente desde el directorio `../values/` (dentro de *este* chart `bootstrap`) y lo inyecta directamente como los valores para renderizar el chart Helm del componente de infraestructura (ej. para Ingress, Vault, Falco, etc.).
 -   **Inyección de Configuración (Aplicaciones)**: Para las aplicaciones principales (frontend, backend), la plantilla normalmente especifica `helm.valueFiles: ["values.yaml"]`. Esto le indica a Argo CD que utilice el archivo `values.yaml` que se encuentra *junto al chart* dentro del repositorio `PTI-WellTrackGitOps`. Este es el archivo que actualizan los pipelines de CI/CD.
 -   **Destino y Sincronización**: También se definen el namespace de destino (ej. `.Values.welltrackFrontend.namespace`), el servidor de destino (`.Values.spec.destination.server` o similar), la política de sincronización y, opcionalmente, la `syncWave`.
 

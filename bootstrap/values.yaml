@@ -38,6 +38,9 @@ vault:
 cert-manager:
   enabled: true # Enable deployment of cert-manager
 
+falco:
+  enabled: true # Habilitar el desplegament de Falco
+
 # Configuració de l'aplicació Backend
 welltrackBackend:
   enabled: true # Enable deployment of the backend application
@@ -137,6 +140,14 @@ spec:
     repoURL: https://charts.jetstack.io
     targetRevision: v1.17.2
     syncWave: 2
+
+  falco:
+    enable: true # Aquest 'enable' és el que realment controla la plantilla
+    namespace: falco # Namespace on es desplegarà Falco
+    chart: falco # Nom del chart de Helm
+    repoURL: https://falcosecurity.github.io/charts # URL del repositori de Helm
+    targetRevision: 4.21.3 # Versió específica del chart a utilitzar
+    syncWave: 4 # Onada de sincronització per Falco
 
   base-manifests:
     enable: true
