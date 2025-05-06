@@ -1,0 +1,36 @@
+{{- if .Values.baseManifests.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: base-manifests
+  namespace: argocd # L'aplicació viu a l'espai de noms d'argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    # El namespace aquí és menys rellevant ja que conté recursos cluster-wide (ClusterIssuer)
+    # o recursos que tindran el seu propi namespace definit al manifest.
+    namespace: default 
+  source:
+    # Apunta al repositori principal de bootstrap
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}
+    # Indica a Argo CD que sincronitzi els manifests d'aquest directori
+    path: bootstrap/manifests 
+    directory:
+      recurse: true # Processa tots els fitxers YAML del directori
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      # No necessitem crear el namespace 'default'
+      - CreateNamespace=false 
+  # Assigna una onada de sincronització
+  info:
+    - name: 'Sync Wave'
+      # El valor de l'onada vindrà de values.yaml
+      value: {{ .Values.baseManifests.syncWave | quote }}
+{{- end }} 

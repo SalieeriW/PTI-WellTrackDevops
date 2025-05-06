@@ -168,7 +168,7 @@ Para acceder a los servicios expuestos a través de Ingress, necesitas asegurart
 Una vez configurada la resolución DNS:
 
 1.  **Argo CD:**
-    *   **URL:** `http://argocd.welltrack.local` (Según `bootstrap/values/argocd.yaml`. Podría ser HTTPS si se configura TLS).
+    *   **URL:** `https://argocd.welltrack.local` (Según `bootstrap/values/argocd.yaml`. HTTPS gestionado por cert-manager).
     *   **Usuario:** `admin`
     *   **Contraseña:** Obtener la contraseña inicial:
         ```bash
@@ -176,7 +176,7 @@ Una vez configurada la resolución DNS:
         ```
 
 2.  **Grafana:**
-    *   **URL:** `http://grafana.welltrack.local` (Asumiendo que el Ingress está configurado en `bootstrap/values/monitoring.yaml` o similar).
+    *   **URL:** `https://grafana.welltrack.local` (Asumiendo que el Ingress está configurado en `bootstrap/values/monitoring.yaml` y actualizado para HTTPS).
     *   **Usuario:** `admin`
     *   **Contraseña:** Depende de la configuración del chart `kube-prometheus-stack`. A menudo se guarda en un secret:
         ```bash
@@ -185,16 +185,16 @@ Una vez configurada la resolución DNS:
         ```
 
 3.  **Prometheus:**
-    *   **URL:** `http://prometheus.welltrack.local` (Asumiendo Ingress configurado).
+    *   **URL:** `https://prometheus.welltrack.local` (Asumiendo Ingress configurado y actualizado para HTTPS).
     *   Accede a esta URL en tu navegador para ver la interfaz de usuario de Prometheus.
 
 4.  **Harbor:**
-    *   **URL:** `http://harbor.welltrack.local` (Asumiendo Ingress configurado en `bootstrap/values/harbor.yaml`).
+    *   **URL:** `https://harbor.welltrack.local` (Asumiendo Ingress configurado en `bootstrap/values/harbor.yaml` y actualizado para HTTPS).
     *   **Usuario:** `admin`
     *   **Contraseña:** La definida en `bootstrap/values/harbor.yaml` (ej. `Harbor12345`). **¡IMPORTANTE!** Cambia la contraseña por defecto en entornos reales.
 
 5.  **Vault:**
-    *   **URL:** `http://vault.welltrack.local` (Según `bootstrap/values/vault.yaml`).
+    *   **URL:** `https://vault.welltrack.local` (Según `bootstrap/values/vault.yaml` y actualizado para HTTPS).
     *   **Acceso (Modo Dev):** Si Vault está en modo dev (`server.dev.enabled: true` en `bootstrap/values/vault.yaml`), se auto-desella y tiene un token raíz predefinido. Para obtenerlo:
         *   Revisa los logs del pod `vault-0` poco después de su inicio:
             ```bash

@@ -1,0 +1,8 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  # Nom que farem servir per referenciar aquest emissor des dels Ingress
+  name: selfsigned-cluster-issuer 
+spec:
+  # Defineix el tipus d'emissor com a autofirmat
+  selfSigned: {} 

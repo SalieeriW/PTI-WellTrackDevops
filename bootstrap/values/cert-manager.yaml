@@ -1,0 +1,45 @@
+# Helm values for the cert-manager chart.
+# Reference: https://artifacthub.io/packages/helm/cert-manager/cert-manager
+
+# IMPORTANT: Disable CRD installation via Helm.
+# The CRDs must be applied manually before installing the chart.
+# Run this command before the Argo CD application syncs:
+# kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.2/cert-manager.crds.yaml
+installCRDs: false
+
+# Recommended settings for production/HA (optional for dev)
+# replicaCount: 3
+# podDisruptionBudget:
+#  enabled: true
+#  minAvailable: 2
+
+# Adjust resource limits if needed
+# resources:
+#  requests:
+#    cpu: 10m
+#    memory: 32Mi
+# webhook:
+#  resources:
+#   requests:
+#     cpu: 10m
+#     memory: 32Mi
+# cainjector:
+#  resources:
+#   requests:
+#     cpu: 10m
+#     memory: 32Mi
+
+# Example of configuring a default self-signed issuer (optional)
+# This would typically be created as a separate Kubernetes manifest after cert-manager is running.
+# We are not configuring it via Helm values here.
+
+# Prometheus ServiceMonitor configuration (if using Prometheus Operator)
+# prometheus:
+#  enabled: true
+#  servicemonitor:
+#    enabled: true
+#    namespace: monitoring # Or your Prometheus operator namespace
+#    prometheusInstance: default # Or your Prometheus instance label
+#    labels: {}
+#    interval: 60s
+#    scrapeTimeout: 30s 

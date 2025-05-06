@@ -29,7 +29,10 @@ storage:
 
 vault:
   enabled: true # Habilitar despliegue de Vault
- 
+
+cert-manager:
+  enabled: true # Enable deployment of cert-manager
+
 # Configuració de l'aplicació Backend
 welltrackBackend:
   enabled: true # Enable deployment of the backend application
@@ -120,4 +123,21 @@ spec:
     chart: vault
     repoURL: https://helm.releases.hashicorp.com
     targetRevision: 0.25.0
-    syncWave: 4 
+    syncWave: 4
+
+  cert-manager:
+    enable: true
+    namespace: cert-manager
+    chart: cert-manager
+    repoURL: https://charts.jetstack.io
+    targetRevision: v1.17.2
+    syncWave: 2
+
+  base-manifests:
+    enable: true
+    syncWave: {{ .Values.baseManifests.syncWave }}
+
+baseManifests:
+  enabled: true
+  syncWave: 3
+  
