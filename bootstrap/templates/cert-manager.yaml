@@ -1,4 +1,6 @@
-{{- if .Values.spec.cert-manager.enable }}
+{{- /* Get component spec using helper */}}
+{{- $certManagerSpec := include "welltrack.componentSpec" (dict "componentName" "cert-manager" "context" $) | fromYaml }}
+{{- if $certManagerSpec.enable }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -11,16 +13,17 @@ spec:
   destination:
     server: {{ .Values.spec.destination.server }}
     # Target namespace for cert-manager resources
-    namespace: {{ .Values.spec.cert-manager.namespace }}
+    namespace: {{ $certManagerSpec.namespace }}
   source:
     # Source Helm chart details
-    chart: {{ .Values.spec.cert-manager.chart }}
-    repoURL: {{ .Values.spec.cert-manager.repoURL }}
-    targetRevision: {{ .Values.spec.cert-manager.targetRevision }}
+    chart: {{ $certManagerSpec.chart }}
+    repoURL: {{ $certManagerSpec.repoURL }}
+    targetRevision: {{ $certManagerSpec.targetRevision }}
     helm:
       # Load values from the specific values file
-      valueFiles:
-        - values/cert-manager.yaml
+      # Temporarily commented out for diagnosis
+      # valueFiles: 
+      #   - values/cert-manager.yaml 
       # Important: Disable CRD installation via Helm
       # CRDs must be applied manually before this application syncs
       values: |
@@ -35,5 +38,5 @@ spec:
   # Assign sync wave based on values.yaml
   info: 
     - name: 'Sync Wave'
-      value: {{ .Values.spec.cert-manager.syncWave | quote }}
+      value: {{ $certManagerSpec.syncWave | quote }}
 {{- end }} 

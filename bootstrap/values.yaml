@@ -1,4 +1,9 @@
 # Valores globales que pueden ser heredados por los subcharts
+
+# Standard Helm chart name and fullname overrides
+nameOverride: ""
+fullnameOverride: ""
+
 global:
   # Dominio base para los servicios expuestos via Ingress
   domain: welltrack.local

@@ -1,4 +1,4 @@
-{{- if .Values.spec.monitoring.enable }} # Condicional: solo genera esta Application si .Values.spec.monitoring.enable es true
+{{- if .Values.spec.monitoring.enable }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

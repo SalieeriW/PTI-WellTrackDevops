@@ -1,4 +1,4 @@
-{{- if .Values.spec.storage.enable }} # Condicional: solo genera esta Application si .Values.spec.storage.enable es true
+{{- if .Values.spec.storage.enable }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

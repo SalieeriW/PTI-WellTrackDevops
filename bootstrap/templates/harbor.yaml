@@ -1,4 +1,4 @@
-{{- if .Values.spec.harbor.enable }} # Condicional: solo genera esta Application si .Values.spec.harbor.enable es true
+{{- if .Values.spec.harbor.enable }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
