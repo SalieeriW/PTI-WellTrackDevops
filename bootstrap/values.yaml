@@ -135,7 +135,7 @@ spec:
 
   base-manifests:
     enable: true
-    syncWave: {{ .Values.baseManifests.syncWave }}
+    syncWave: 3
 
 baseManifests:
   enabled: true
