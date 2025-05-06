@@ -21,9 +21,8 @@ spec:
     targetRevision: {{ $certManagerSpec.targetRevision }}
     helm:
       # Load values from the specific values file
-      # Temporarily commented out for diagnosis
-      # valueFiles: 
-      #   - values/cert-manager.yaml 
+      valueFiles:
+        - values/cert-manager.yaml
       # Important: Disable CRD installation via Helm
       # CRDs must be applied manually before this application syncs
       values: |
