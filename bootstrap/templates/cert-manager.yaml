@@ -21,7 +21,7 @@ spec:
     helm:
       # Load values from the specific values file
       valueFiles:
-        - ../values/cert-manager.yaml
+{{ .Files.Get "values/cert-manager.yaml" | indent 8 }}
       # Important: Disable CRD installation via Helm
       # CRDs must be applied manually before this application syncs
       values: |
