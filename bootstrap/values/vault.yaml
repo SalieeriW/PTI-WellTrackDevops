@@ -12,6 +12,12 @@ server:
   # Configurar Ingress para permitir el acceso a Vault desde fuera del cluster
   ingress:
     enabled: true
+    # Añade o modifica las anotaciones existentes
+    annotations:
+      # Esta anotación le dice a cert-manager que use este ClusterIssuer
+      cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
+      # Recomendado para forzar HTTPS con Nginx
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     # Clase de Ingress a utilizar (p. ej., nginx)
     ingressClassName: nginx
     # Tipo de coincidencia para la ruta (Prefix, Exact)
@@ -22,6 +28,12 @@ server:
         # Rutas de acceso para el Ingress
         paths:
           - /
+    # Añade esta sección TLS
+    tls:
+      - hosts:
+          - vault.welltrack.local
+        # El nombre del Secret que cert-manager creará y gestionará.
+        secretName: vault-tls
 
 # Configurar la interfaz de usuario web de Vault
 ui:

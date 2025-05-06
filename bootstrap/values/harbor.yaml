@@ -10,14 +10,21 @@ expose:
     className: nginx
     # Anotaciones específicas del Ingress Controller
     annotations:
-      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      # Esta anotación le dice a cert-manager que use este ClusterIssuer
+      cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
+      # Asegurarse de que Nginx no redirija a HTTP si manejamos TLS
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
       nginx.ingress.kubernetes.io/proxy-body-size: "0"
-  # Configuración TLS para Ingress (deshabilitado)
+  # Configuración TLS para Ingress (habilitado)
   tls:
-    enabled: false
+    enabled: true # Habilitar TLS
+    # Nombre del Secret que cert-manager creará y gestionará
+    secretName: harbor-tls
+    # No necesitamos especificar certSource: secret, cert-manager lo gestiona
 
 # URL externa utilizada por Harbor (ej. en correos electrónicos, webhooks)
-externalURL: http://harbor.welltrack.local
+# Actualizar a HTTPS
+externalURL: https://harbor.welltrack.local
 
 # Deshabilitar la persistencia para simplificar el entorno de pruebas/desarrollo
 persistence:
