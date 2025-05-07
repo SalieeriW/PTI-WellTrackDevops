@@ -1,0 +1,185 @@
+# PTI-WellTrackDevops/.github/workflows/sync-grafana-dashboards.yaml
+name: Sync Grafana Dashboards from values.yaml
+
+on:
+  # Triggered by a dispatch event from the Grafana-Dashboards repository
+  repository_dispatch:
+    types: [dashboards-updated]
+  # Triggered on pushes to the bootstrap/values.yaml file in this repository
+  push:
+    paths:
+      - 'bootstrap/values.yaml' # MODIFIED: Now triggers on changes to values.yaml
+    branches:
+      - main # Or your primary branch, ensure this matches your repo's main branch
+
+permissions:
+  contents: write # Allow workflow to commit to the repository
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      GENERATED_DIR: "generated-dashboards" # Directory to store generated ConfigMap YAMLs
+      # MODIFIED: Path to the Helm values file that contains dashboard selection
+      VALUES_FILE_PATH: "bootstrap/values.yaml"
+      # Namespace where Grafana and these ConfigMaps will reside.
+      K8S_NAMESPACE: "monitoring" # Ensure this matches the namespace in your values.yaml for monitoring components
+
+    steps:
+      - name: Checkout PTI-WellTrackDevops Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }} # PAT with write access to this repo
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install PyYAML and Requests
+        run: pip install pyyaml requests
+
+      - name: Clear/Create Generated Dashboards Directory
+        run: |
+          rm -rf ${{ env.GENERATED_DIR }}
+          mkdir -p ${{ env.GENERATED_DIR }}
+
+      - name: Process Dashboards and Generate ConfigMaps
+        id: generate_configmaps
+        run: |
+          import yaml
+          import os
+          import json
+          import requests
+          from pathlib import Path
+          import re # For parsing repo URL
+
+          values_file_path = Path(os.environ['VALUES_FILE_PATH'])
+          generated_dir = Path(os.environ['GENERATED_DIR'])
+          k8s_namespace = os.environ['K8S_NAMESPACE']
+          github_server_url = os.environ.get('GITHUB_SERVER_URL', 'https://github.com')
+          github_token = os.environ.get('GH_PAT_READ_DASHBOARDS')
+
+          if not values_file_path.is_file():
+              print(f"Values file {values_file_path} not found.")
+              exit(1)
+
+          with open(values_file_path, 'r') as f:
+              values_data = yaml.safe_load(f)
+
+          grafana_dashboards_config = values_data.get('grafanaDashboards', {})
+          if not grafana_dashboards_config.get('enabled', False):
+              print("grafanaDashboards.enabled is not true in values.yaml. Skipping dashboard generation.")
+              print(f"::set-output name=any_changes::false")
+              exit(0)
+              
+          source_repo_config = grafana_dashboards_config.get('sourceRepo', {})
+          repo_url = source_repo_config.get('url')
+          source_repo_ref = source_repo_config.get('branch', 'main') # Default to 'main'
+
+          if not repo_url:
+              print(f"Error: grafanaDashboards.sourceRepo.url not found in {values_file_path}")
+              exit(1)
+
+          # Parse owner and name from GitHub URL
+          # Handles https://github.com/OWNER/REPO.git and https://github.com/OWNER/REPO
+          match = re.match(r"https://(?:www\.)?github\.com/([^/]+)/([^/.]+)(?:\.git)?", repo_url)
+          if not match:
+              print(f"Error: Could not parse owner and repo name from URL: {repo_url}")
+              exit(1)
+          source_repo_owner = match.group(1)
+          source_repo_name = match.group(2)
+          
+          print(f"Source Repository: Owner={source_repo_owner}, Name={source_repo_name}, Ref={source_repo_ref}")
+
+          active_dashboards = grafana_dashboards_config.get('active', [])
+          if not active_dashboards:
+              print(f"No active dashboards found under grafanaDashboards.active in {values_file_path}. Nothing to generate.")
+              print(f"::set-output name=any_changes::false")
+              exit(0)
+
+          any_changes = False
+
+          for dashboard_item in active_dashboards:
+              source_file_path_str = dashboard_item.get('file')
+              if not source_file_path_str:
+                  print(f"Warning: Dashboard item found without a 'file' key: {dashboard_item}")
+                  continue
+              
+              source_file_path = Path(source_file_path_str)
+              base_filename = source_file_path.name
+              # Sanitize filename for ConfigMap name: replace dots and underscores with hyphens
+              sanitized_stem = source_file_path.stem.lower().replace('.', '-').replace('_', '-')
+              cm_name = f"grafana-dashboard-{sanitized_stem}"
+              cm_data_key = base_filename
+
+              print(f"Processing dashboard: {source_file_path_str} -> ConfigMap: {cm_name}")
+
+              # Path prefix from values.yaml (if any)
+              path_prefix = source_repo_config.get('pathPrefix', '').strip('/')
+              full_source_path = f"{path_prefix}/{source_file_path_str}" if path_prefix else source_file_path_str
+              
+              raw_url = f"{github_server_url}/{source_repo_owner}/{source_repo_name}/raw/{source_repo_ref}/{full_source_path}"
+              
+              headers = {}
+              if github_token:
+                  headers['Authorization'] = f"token {github_token}"
+              
+              try:
+                  response = requests.get(raw_url, headers=headers)
+                  response.raise_for_status()
+                  dashboard_json_content_str = response.text
+                  json.loads(dashboard_json_content_str) # Validate JSON
+              except requests.exceptions.RequestException as e:
+                  print(f"Error fetching dashboard {full_source_path} from {raw_url}: {e}")
+                  continue
+              except json.JSONDecodeError as e:
+                  print(f"Error: Content of {full_source_path} is not valid JSON: {e}")
+                  continue
+
+              configmap_manifest = {
+                  "apiVersion": "v1",
+                  "kind": "ConfigMap",
+                  "metadata": {
+                      "name": cm_name,
+                      "namespace": k8s_namespace,
+                      "labels": {
+                          "grafana_dashboard": "1" # Standard label for Grafana sidecar discovery
+                          # You might want to add other labels for ArgoCD or identification
+                      }
+                  },
+                  "data": {
+                      cm_data_key: dashboard_json_content_str
+                  }
+              }
+
+              output_file = generated_dir / f"{cm_name}.yaml"
+              with open(output_file, 'w') as f:
+                  yaml.dump(configmap_manifest, f, sort_keys=False)
+              print(f"Generated ConfigMap: {output_file}")
+              any_changes = True
+          
+          print(f"::set-output name=any_changes::{str(any_changes).lower()}")
+        env:
+          GH_PAT_READ_DASHBOARDS: ${{ secrets.GH_PAT }} # PAT for reading from Grafana-Dashboards
+
+      - name: Commit and Push Generated ConfigMaps
+        if: steps.generate_configmaps.outputs.any_changes == 'true'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add ${{ env.GENERATED_DIR }}/*.yaml
+          
+          if ! git diff --cached --quiet; then
+            git commit -m "Automated: Update/Generate Grafana dashboard ConfigMaps from values.yaml
+
+            Triggered by: ${{ github.event_name }}
+            ${{ github.event.client_payload.repository && format('Source Repo Event: {0}', github.event.client_payload.repository) || '' }}
+            ${{ github.event.client_payload.sha && format('Source SHA Event: {0}', github.event.client_payload.sha) || '' }}"
+            echo "Pushing changes..."
+            git push
+          else
+            echo "No effective changes to commit in ${{ env.GENERATED_DIR }}."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }} # Used by checkout and git push
