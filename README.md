@@ -162,7 +162,7 @@ Para acceder a los servicios expuestos a través de Ingress, necesitas asegurart
 
     ```
     # Reemplaza INGRESS_IP con la IP real (p.ej., 127.0.0.1 para Kind con port-mapping)
-    INGRESS_IP grafana.welltrack.local harbor.welltrack.local vault.welltrack.local argocd.welltrack.local prometheus.welltrack.local app.welltrack.local
+    INGRESS_IP grafana.welltrack.local harbor.welltrack.local vault.welltrack.local argocd.welltrack.local prometheus.welltrack.local alertmanager.welltrack.local app.welltrack.local
     ```
     *(Asegúrate de incluir `app.welltrack.local` o el dominio que uses para el frontend/backend si lo expones vía Ingress).*
 

@@ -157,3 +157,15 @@ baseManifests:
   enabled: true
   syncWave: 3
   
+grafanaDashboards:
+  enabled: true
+  syncWave: "5" 
+  
+  sourceRepo:
+    url: "https://github.com/hongda-zhu/Grafana-Dashboards.git" 
+    branch: "master" 
+    pathPrefix: "" 
+
+  active:
+    - file: "falco-logs.json"
+    - file: "falco-metrics.json"
