@@ -20,10 +20,9 @@ El proyecto se basa en Kubernetes y adopta la metodología GitOps. Argo CD se ut
 ### Aplicaciones WellTrack Gestionadas
 
 -   **welltrack-frontend**: La interfaz de usuario de la aplicación.
--   **welltrack-backend**: La API y lógica de negocio del backend.
--   *(Posiblemente welltrack-ml u otras futuras)*
+-   **welltrack-backend**: La API y lógica de negocio del backend. (Puede ser expuesto vía Ingress en `api.welltrack.local`)
 
-La *definición* del despliegue de estas aplicaciones (es decir, la creación de sus `Application` en Argo CD) se gestiona aquí, pero sus *charts Helm específicos* residen en el repositorio `PTI-WellTrackGitOps`.
+La *definición* del despliegue de estas aplicaciones (es decir, la creación de sus `Application` en Argo CD) se gestiona aquí, pero sus *charts Helm específicos* (incluyendo su configuración de Ingress) residen en el repositorio `PTI-WellTrackGitOps`.
 
 ## Estructura del Proyecto
 
@@ -162,9 +161,9 @@ Para acceder a los servicios expuestos a través de Ingress, necesitas asegurart
 
     ```
     # Reemplaza INGRESS_IP con la IP real (p.ej., 127.0.0.1 para Kind con port-mapping)
-    INGRESS_IP grafana.welltrack.local harbor.welltrack.local vault.welltrack.local argocd.welltrack.local prometheus.welltrack.local alertmanager.welltrack.local app.welltrack.local
+    INGRESS_IP grafana.welltrack.local harbor.welltrack.local vault.welltrack.local argocd.welltrack.local prometheus.welltrack.local alertmanager.welltrack.local app.welltrack.local api.welltrack.local
     ```
-    *(Asegúrate de incluir `app.welltrack.local` o el dominio que uses para el frontend/backend si lo expones vía Ingress).*
+    *(Asegúrate de incluir `app.welltrack.local` para el frontend y `api.welltrack.local` para el backend, o los dominios que uses si los expones vía Ingress).*
 
 ### Acceso a Servicios Específicos
 

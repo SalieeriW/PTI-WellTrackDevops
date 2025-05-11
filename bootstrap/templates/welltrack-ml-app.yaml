@@ -1,0 +1,51 @@
+# PTI-WellTrackDevops/bootstrap/templates/welltrack-ml-app.yaml
+{{- if .Values.welltrackMl.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: welltrack-ml
+  namespace: argocd # Namespace where Argo CD is running
+  {{- $syncWave := get .Values.welltrackMl "syncWave" }} {{- /* Safely get syncWave value */}}
+  {{- if $syncWave }} {{- /* Check if syncWave has a truthy value */}}
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ $syncWave }}"
+  {{- end }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+
+spec:
+  project: {{ .Values.spec.project | default "default" }} # Argo CD project
+
+  source:
+    # Source repository for the ML application's manifests (Helm chart)
+    repoURL: {{ .Values.welltrackMl.source.repoURL }}
+    targetRevision: {{ .Values.welltrackMl.source.targetRevision | default "HEAD" }}
+    path: {{ .Values.welltrackMl.source.path }}
+    helm:
+      # Use the values.yaml from the GitOps repo (PTI-WellTrackGitOps/charts/welltrack-ml/values.yaml)
+      valueFiles:
+        - values.yaml
+      # Optional: Specify Helm release name if needed
+      # releaseName: welltrack-ml
+
+  destination:
+    # Target cluster and namespace for the ML application resources
+    server: {{ .Values.spec.destination.server | default "https://kubernetes.default.svc" }} # Target cluster API server
+    namespace: {{ .Values.welltrackMl.namespace }} # Target namespace for ML resources
+
+  syncPolicy:
+    automated:
+      prune: true # Delete resources that are no longer defined in Git
+      selfHeal: true # Automatically sync if the live state deviates from Git
+    syncOptions:
+      - CreateNamespace=true # Create the target namespace if it doesn't exist
+    # Optional: Add retry logic, especially useful for applications in sync waves
+    {{- if $syncWave }}
+    retry:
+      limit: 5 # Number of retries
+      backoff:
+        duration: 5s # Retry backoff duration
+        factor: 2 # Factor by which to multiply backoff duration on each subsequent retry
+        maxDuration: 3m0s # Maximum backoff duration
+    {{- end }}
+{{- end }} 

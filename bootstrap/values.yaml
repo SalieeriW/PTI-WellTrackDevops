@@ -59,6 +59,16 @@ welltrackFrontend:
     targetRevision: HEAD 
     path: charts/welltrack-frontend
 
+# Configuració de l'aplicació ML
+welltrackMl:
+  enabled: true # Enable deployment of the ML application
+  namespace: welltrack # Target namespace (can be same or different)
+  # syncWave: "5" # Optional: if it depends on backend/frontend or other infra
+  source:
+    repoURL: https://github.com/hongda-zhu/PTI-WellTrackGitOps.git 
+    targetRevision: HEAD 
+    path: charts/welltrack-ml
+
 spec:
   destination:
     server: https://kubernetes.default.svc
