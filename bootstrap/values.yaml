@@ -46,17 +46,17 @@ welltrackBackend:
   enabled: true # Enable deployment of the backend application
   namespace: welltrack # Target namespace for deploying backend resources
   source:
-    repoURL: https://github.com/hongda-zhu/PTI-WellTrackGitOps.git 
-    targetRevision: HEAD 
-    path: charts/welltrack-backend 
+    repoURL: https://github.com/SalieeriW/PTI-WellTrackGitOps.git
+    targetRevision: HEAD
+    path: charts/welltrack-backend
 
 # Configuració de l'aplicació Frontend
 welltrackFrontend:
   enabled: true # Enable deployment of the frontend application
   namespace: welltrack # Target namespace (same as backend or different if needed)
   source:
-    repoURL: https://github.com/hongda-zhu/PTI-WellTrackGitOps.git 
-    targetRevision: HEAD 
+    repoURL: https://github.com/SalieeriW/PTI-WellTrackGitOps.git
+    targetRevision: HEAD
     path: charts/welltrack-frontend
 
 # Configuració de l'aplicació ML
@@ -65,23 +65,23 @@ welltrackMl:
   namespace: welltrack # Target namespace (can be same or different)
   # syncWave: "5" # Optional: if it depends on backend/frontend or other infra
   source:
-    repoURL: https://github.com/hongda-zhu/PTI-WellTrackGitOps.git 
-    targetRevision: HEAD 
+    repoURL: https://github.com/SalieeriW/PTI-WellTrackGitOps.git
+    targetRevision: HEAD
     path: charts/welltrack-ml
 
 spec:
   destination:
     server: https://kubernetes.default.svc
   source:
-    repoURL: https://github.com/hongda-zhu/PTI-WellTrackDevops.git
+    repoURL: https://github.com/SalieeriW/PTI-WellTrackDevops.git
     targetRevision: HEAD
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
   project: default
-  
-  # Componentes a desplegar 
+
+  # Componentes a desplegar
   ingress:
     enable: true
     namespace: ingress-nginx
@@ -89,7 +89,7 @@ spec:
     repoURL: https://kubernetes.github.io/ingress-nginx
     targetRevision: 4.7.1
     syncWave: 1
-  
+
   harbor:
     enable: true
     namespace: harbor
@@ -97,7 +97,7 @@ spec:
     repoURL: https://helm.goharbor.io
     targetRevision: 1.12.2
     syncWave: 2
-    
+
   database:
     enable: true
     namespace: database
@@ -105,7 +105,7 @@ spec:
     repoURL: https://charts.bitnami.com/bitnami
     targetRevision: 12.2.2
     syncWave: 2
-    
+
   monitoring:
     enable: true
     namespace: monitoring
@@ -113,7 +113,7 @@ spec:
     repoURL: https://prometheus-community.github.io/helm-charts
     targetRevision: 45.27.2
     syncWave: 3
-    
+
   logging:
     enable: true
     namespace: logging
@@ -126,7 +126,7 @@ spec:
       chart: promtail
       repoURL: https://grafana.github.io/helm-charts
       targetRevision: 6.11.3
-    
+
   storage:
     enable: true
     namespace: rook-ceph
@@ -134,7 +134,7 @@ spec:
     repoURL: https://charts.rook.io/release
     targetRevision: 1.12.3
     syncWave: 1
-    
+
   vault:
     enable: true
     namespace: vault
@@ -152,12 +152,12 @@ spec:
     syncWave: 2
 
   falco:
-    enable: true  
-    namespace: falco 
-    chart: falco 
-    repoURL: https://falcosecurity.github.io/charts 
-    targetRevision: 4.21.3 
-    syncWave: 4 
+    enable: true
+    namespace: falco
+    chart: falco
+    repoURL: https://falcosecurity.github.io/charts
+    targetRevision: 4.21.3
+    syncWave: 4
 
   base-manifests:
     enable: true
@@ -166,15 +166,15 @@ spec:
 baseManifests:
   enabled: true
   syncWave: 3
-  
+
 grafanaDashboards:
   enabled: true
-  syncWave: "5" 
-  
+  syncWave: "5"
+
   sourceRepo:
-    url: "https://github.com/hongda-zhu/Grafana-Dashboards.git" 
-    branch: "master" 
-    pathPrefix: "" 
+    url: "https://github.com/hongda-zhu/Grafana-Dashboards.git"
+    branch: "master"
+    pathPrefix: ""
 
   active:
     - file: "falco-logs.json"
