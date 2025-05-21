@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/hongda-zhu/PTI-WellTrackDevops.git
+    repoURL: https://github.com/SalieeriW/PTI-WellTrackDevops.git
     targetRevision: HEAD
     path: bootstrap
   destination:
