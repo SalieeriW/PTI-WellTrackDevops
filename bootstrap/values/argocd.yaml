@@ -1,11 +1,23 @@
+global:
+  # Dominio global para acceder a Argo CD vía Ingress
+  domain: argocd.welltrack.local
+
 server:
+  # Configuración del servicio del servidor de Argo CD
   service:
+    # Tipo de servicio Kubernetes (ClusterIP, NodePort, LoadBalancer)
     type: ClusterIP
+
+  # Configuración de Ingress para el servidor de Argo CD
   ingress:
+    # Habilitar la creación de un recurso Ingress
     enabled: true
+    # Clase de Ingress a utilizar (ej. nginx, traefik)
     ingressClassName: nginx
+    # Nombres de host para acceder a Argo CD
     hosts:
       - argocd.welltrack.local
+    # Rutas de acceso para el Ingress
     paths:
       - path: /
         pathType: Prefix
@@ -13,13 +25,35 @@ server:
           service:
             port:
               name: http
+    # Anotaciones específicas del Ingress Controller
     annotations:
+      # Indica a cert-manager que gestione el certificado para este Ingress
       cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
+      # Forzar redirección a HTTPS (dependiendo del controlador de Ingress, por ejemplo, NGINX)
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      # Tamaño máximo del cuerpo de la petición (0 = sin límite)
       nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    # Configuración TLS gestionada por cert-manager
     tls:
       - hosts:
           - argocd.welltrack.local
+        # cert-manager creará automáticamente este secret
         secretName: argocd-server-tls
+
+  # Argumentos adicionales (desactiva redirección HTTPS interna)
   extraArgs:
     - --insecure
+
+# Configuración para el controlador ApplicationSet
+applicationSet:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Configuración para el Repo Server de ArgoCD
+repoServer:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
