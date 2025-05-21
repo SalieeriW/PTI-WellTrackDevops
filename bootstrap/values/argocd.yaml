@@ -1,22 +1,11 @@
-global:
-  # Dominio global para acceder a Argo CD vía Ingress
-  domain: argocd.welltrack.local
-
 server:
-  # Configuración del servicio del servidor de Argo CD
   service:
-    # Tipo de servicio Kubernetes (ClusterIP, NodePort, LoadBalancer)
     type: ClusterIP
-  # Configuración de Ingress para el servidor de Argo CD
   ingress:
-    # Habilitar la creación de un recurso Ingress
     enabled: true
-    # Clase de Ingress a utilizar (ej. nginx, traefik)
     ingressClassName: nginx
-    # Nombres de host para acceder a Argo CD
     hosts:
-      - {{ .Values.global.domain | default "argocd.welltrack.local" }}
-    # Rutas de acceso para el Ingress
+      - argocd.welltrack.local
     paths:
       - path: /
         pathType: Prefix
@@ -24,39 +13,13 @@ server:
           service:
             port:
               name: http
-    # Tipo de coincidencia para la ruta (Prefix, Exact)
-    # pathType: Prefix # Removed duplicate pathType definition
-    # Anotaciones específicas del Ingress Controller
     annotations:
-      # Indica a cert-manager que gestioni el certificat per aquest Ingress
       cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
-      # Opcional: Forçar redirecció a HTTPS (depèn del controlador d'Ingress, p. ex., Nginx)
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-      # Tamaño máximo del cuerpo de la petición (0 = sin límite)
       nginx.ingress.kubernetes.io/proxy-body-size: "0"
-      # Note: Removed backend-protocol, ssl-passthrough, ssl-redirect annotations for simplicity
-    # Configuració TLS gestionada per cert-manager
     tls:
       - hosts:
-          - {{ .Values.global.domain | default "argocd.welltrack.local" }}
-        # cert-manager crearà automàticament aquest secret
+          - argocd.welltrack.local
         secretName: argocd-server-tls
-  # Add extra arguments to disable internal HTTPS redirect
-  # Remove --insecure when using HTTPS via Ingress
-  extraArgs: []
-
-# Configuración para el controlador ApplicationSet
-applicationSet:
-  # Recursos (requests/limits) para los pods del controlador ApplicationSet
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
-
-# Configuración para el Repo Server de ArgoCD
-repoServer:
-  # Recursos (requests/limits) para los pods de Repo Server
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
+  extraArgs:
+    - --insecure
